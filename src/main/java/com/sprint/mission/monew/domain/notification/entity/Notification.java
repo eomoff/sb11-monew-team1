@@ -2,89 +2,91 @@ package com.sprint.mission.monew.domain.notification.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
+import jakarta.persistence.EntityListeners;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Table(name = "notifications")
+@EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Notification {
 
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
+  @Column(columnDefinition = "uuid", updatable = false)
   private UUID id;
 
-  @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @JoinColumn(name = "user_id", nullable = false)
-  private User user;
+  @Column(name = "user_id", columnDefinition = "uuid")
+  private UUID userId;
 
   @Column(nullable = false)
   private String content;
 
+  @Enumerated(EnumType.STRING)
   @Column(name = "resource_type", nullable = false)
-  private String resourceType;
+  private ResourceType resourceType;
 
-  @Column(name = "resource_id", nullable = false)
+  @Column(name = "resource_id", nullable = false, columnDefinition = "uuid")
   private UUID resourceId;
 
-  // Null 관련 확인 필요
   @Column(name = "confirmed_at")
-  private LocalDateTime confirmedAt;
+  private Instant confirmedAt;
 
-  @Column(name = "created_at", nullable = false)
-  private LocalDateTime createdAt;
+  @CreatedDate
+  @Column(name = "created_at", nullable = false, updatable = false)
+  private Instant createdAt;
 
+  @LastModifiedDate
   @Column(name = "updated_at", nullable = false)
-  private LocalDateTime updatedAt;
+  private Instant updatedAt;
 
   private Notification(
-      User user,
+      UUID userId,
       String content,
-      String resourceType,
-      UUID resourceId,
-      LocalDateTime createdAt
+      ResourceType resourceType,
+      UUID resourceId
   ) {
-    this.user = user;
+    this.userId = userId;
     this.content = content;
     this.resourceType = resourceType;
     this.resourceId = resourceId;
-    this.confirmedAt = null;
-    this.createdAt = createdAt;
-    this.updatedAt = createdAt;
   }
 
   public static Notification create(
-      User user,
+      UUID userId,
       String content,
-      String resourceType,
+      ResourceType resourceType,
       UUID resourceId
   ) {
     return new Notification(
-        user,
+        userId,
         content,
         resourceType,
-        resourceId,
-        LocalDateTime.now());
+        resourceId
+    );
   }
 
-  // null이 아니면 true 반환
   public boolean isConfirmed() {
     return confirmedAt != null;
   }
 
   public void confirm() {
-    this.confirmedAt = LocalDateTime.now();
-    this.updatedAt = LocalDateTime.now();
+    if (!isConfirmed()) {
+      confirmedAt = Instant.now();
+    }
   }
 }
