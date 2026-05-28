@@ -16,15 +16,13 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class NotificationCustomRepositoryImpl implements NotificationCustomRepository {
 
-  private static final int DEFAULT_LIMIT = 50;
-
   private final EntityManager em;
   private final NotificationMapper notificationMapper;
 
   @Override
   public CursorPageResponse<NotificationResponse> findUnconfirmed(UUID userId,
       NotificationQueryCondition condition) {
-    int pageSize = condition.limit() != null ? condition.limit() : DEFAULT_LIMIT;
+    int pageSize = condition.limit();
     UUID cursorId = condition.cursor();
     Instant cursorCreatedAt = condition.after();
     boolean firstPage = (cursorId == null || cursorCreatedAt == null);

@@ -3,7 +3,6 @@ package com.sprint.mission.monew.domain.notification.dto;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -12,11 +11,18 @@ public record NotificationQueryCondition(
 
     Instant after,
 
-    @NotNull(message = "limit은 필수입니다")
     @Min(value = 1, message = "limit must be at least 1")
     @Max(value = 100, message = "limit must not exceed 100")
     Integer limit
 ) {
+
+  private static final int DEFAULT_LIMIT = 50;
+
+  public NotificationQueryCondition {
+    if (limit == null) {
+      limit = DEFAULT_LIMIT;
+    }
+  }
 
   public boolean hasCursor() {
     return cursor != null && after != null;

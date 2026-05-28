@@ -61,16 +61,19 @@ class NotificationControllerTest {
     }
 
     @Test
-    @DisplayName("limit이 없으면 400을 반환한다")
-    void limit이_없으면_400을_반환한다() throws Exception {
+    @DisplayName("limit이 없으면 기본값이 적용되어 200을 반환한다")
+    void limit이_없으면_기본값이_적용되어_200을_반환한다() throws Exception {
+      // given
+      CursorPageResponse<NotificationResponse> response =
+          new CursorPageResponse<>(List.of(), null, null, false, 0, 0L);
+      given(notificationService.findUnconfirmed(any(), any())).willReturn(response);
+
       // when & then
       mockMvc
           .perform(
               get("/api/notifications")
                   .header("Monew-Request-User-ID", UUID.randomUUID()))
-          .andExpect(status().isBadRequest());
-
-      verifyNoInteractions(notificationService);
+          .andExpect(status().isOk());
     }
 
     @Test
