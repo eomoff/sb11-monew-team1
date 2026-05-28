@@ -5,10 +5,8 @@ import com.sprint.mission.monew.common.dto.CursorPageResponse;
 import com.sprint.mission.monew.domain.notification.dto.NotificationResponse;
 import com.sprint.mission.monew.domain.notification.dto.NotificationSearchRequest;
 import com.sprint.mission.monew.domain.notification.entity.Notification;
-import com.sprint.mission.monew.domain.notification.exception.NotificationNotFoundException;
 import com.sprint.mission.monew.domain.notification.mapper.NotificationMapper;
 import com.sprint.mission.monew.domain.notification.repository.NotificationRepository;
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -39,22 +37,6 @@ public class NotificationService {
     long totalElements = notificationRepository.countByUserIdAndConfirmedAtIsNull(userId);
 
     return notificationMapper.toCursorPage(page, hasNext, totalElements);
-  }
-
-  @Transactional
-  public int confirmAll(UUID userId) {
-    int confirmed = notificationRepository.confirmAllByUserId(userId, Instant.now());
-    log.info("Confirmed all notifications: userId={}, count={}", userId, confirmed);
-    return confirmed;
-  }
-
-  @Transactional
-  public void confirm(UUID userId, UUID notificationId) {
-    Notification notification = notificationRepository.findByIdAndUserId(notificationId, userId)
-        .orElseThrow(() -> NotificationNotFoundException.withId(notificationId));
-
-    notification.confirm();
-    log.info("Confirmed notification: userId={}, notificationId={}", userId, notificationId);
   }
 
   private int resolvePageSize(Integer limit) {
