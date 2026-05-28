@@ -24,10 +24,6 @@ public record NotificationQueryCondition(
     }
   }
 
-  public boolean hasCursor() {
-    return cursor != null && after != null;
-  }
-
   @AssertTrue(message = "cursor와 after는 함께 입력해야 합니다")
   public boolean isCursorPaired() {
     return (cursor == null) == (after == null);
