@@ -1,34 +1,22 @@
 package com.sprint.mission.monew.domain.notification.entity;
 
+import com.sprint.mission.monew.common.entity.BaseUpdatableEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Table(name = "notifications")
-@EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Notification {
-
-  @Id
-  @GeneratedValue(strategy = GenerationType.UUID)
-  @Column(columnDefinition = "uuid", updatable = false)
-  private UUID id;
+public class Notification extends BaseUpdatableEntity {
 
   @Column(name = "user_id", columnDefinition = "uuid")
   private UUID userId;
@@ -45,14 +33,6 @@ public class Notification {
 
   @Column(name = "confirmed_at")
   private Instant confirmedAt;
-
-  @CreatedDate
-  @Column(name = "created_at", nullable = false, updatable = false)
-  private Instant createdAt;
-
-  @LastModifiedDate
-  @Column(name = "updated_at", nullable = false)
-  private Instant updatedAt;
 
   private Notification(
       UUID userId,
