@@ -1,6 +1,7 @@
 package com.sprint.mission.monew.domain.notification.repository;
 
 import com.sprint.mission.monew.domain.notification.entity.Notification;
+import com.sprint.mission.monew.domain.notification.repository.querydsl.NotificationCustomRepository;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
@@ -10,7 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface NotificationRepository extends JpaRepository<Notification, UUID>,
-    NotificationRepositoryCustom {
+    NotificationCustomRepository {
 
   // 조회해라 Id와 UserId를
   Optional<Notification> findByIdAndUserId(UUID id, UUID userId);

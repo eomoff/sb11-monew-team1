@@ -3,12 +3,14 @@ package com.sprint.mission.monew.domain.notification.repository;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.sprint.mission.monew.common.config.JpaConfig;
+import com.sprint.mission.monew.common.config.QuerydslConfig;
 import com.sprint.mission.monew.common.dto.CursorPageResponse;
 import com.sprint.mission.monew.domain.notification.dto.NotificationQueryCondition;
 import com.sprint.mission.monew.domain.notification.dto.NotificationResponse;
 import com.sprint.mission.monew.domain.notification.entity.Notification;
 import com.sprint.mission.monew.domain.notification.entity.ResourceType;
 import com.sprint.mission.monew.domain.notification.mapper.NotificationMapperImpl;
+import com.sprint.mission.monew.domain.notification.repository.querydsl.impl.NotificationCustomRepositoryImpl;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -23,7 +25,7 @@ import org.springframework.test.context.ActiveProfiles;
 @DataJpaTest
 @ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({JpaConfig.class, NotificationRepositoryImpl.class, NotificationMapperImpl.class})
+@Import({JpaConfig.class, QuerydslConfig.class, NotificationCustomRepositoryImpl.class, NotificationMapperImpl.class})
 class NotificationRepositoryTest {
 
   @Autowired

@@ -1,21 +1,20 @@
-package com.sprint.mission.monew.domain.notification.repository;
+package com.sprint.mission.monew.domain.notification.repository.querydsl.impl;
 
 import com.sprint.mission.monew.common.dto.CursorPageResponse;
 import com.sprint.mission.monew.domain.notification.dto.NotificationQueryCondition;
 import com.sprint.mission.monew.domain.notification.dto.NotificationResponse;
 import com.sprint.mission.monew.domain.notification.entity.Notification;
 import com.sprint.mission.monew.domain.notification.mapper.NotificationMapper;
+import com.sprint.mission.monew.domain.notification.repository.querydsl.NotificationCustomRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
 
-@Repository
 @RequiredArgsConstructor
-public class NotificationRepositoryImpl implements NotificationRepositoryCustom {
+public class NotificationCustomRepositoryImpl implements NotificationCustomRepository {
 
   private static final int DEFAULT_LIMIT = 50;
 
