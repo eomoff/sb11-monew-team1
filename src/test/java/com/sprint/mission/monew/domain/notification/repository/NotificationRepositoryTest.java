@@ -3,9 +3,12 @@ package com.sprint.mission.monew.domain.notification.repository;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.sprint.mission.monew.common.config.JpaConfig;
+import com.sprint.mission.monew.common.dto.CursorPageResponse;
+import com.sprint.mission.monew.domain.notification.dto.NotificationQueryCondition;
+import com.sprint.mission.monew.domain.notification.dto.NotificationResponse;
 import com.sprint.mission.monew.domain.notification.entity.Notification;
 import com.sprint.mission.monew.domain.notification.entity.ResourceType;
-import java.util.List;
+import com.sprint.mission.monew.domain.notification.mapper.NotificationMapperImpl;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -20,7 +23,7 @@ import org.springframework.test.context.ActiveProfiles;
 @DataJpaTest
 @ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({JpaConfig.class, NotificationRepositoryImpl.class})
+@Import({JpaConfig.class, NotificationRepositoryImpl.class, NotificationMapperImpl.class})
 class NotificationRepositoryTest {
 
   @Autowired
@@ -35,8 +38,8 @@ class NotificationRepositoryTest {
   }
 
   @Nested
-  @DisplayName("findUnconfirmedSlice")
-  class FindUnconfirmedSlice {
+  @DisplayName("findUnconfirmed")
+  class FindUnconfirmed {
 
     @Test
     @DisplayName("커서 없이 조회하면 해당 사용자의 미확인 알림만 반환한다")
@@ -46,15 +49,15 @@ class NotificationRepositoryTest {
           Notification.create(userId, "알림1", ResourceType.INTEREST, UUID.randomUUID()));
       notificationRepository.save(
           Notification.create(userId, "알림2", ResourceType.INTEREST, UUID.randomUUID()));
+      NotificationQueryCondition condition = new NotificationQueryCondition(null, null, 10);
 
       // when
-      List<Notification> result = notificationRepository.findUnconfirmedSlice(
-          userId, null, null, 10);
+      CursorPageResponse<NotificationResponse> result =
+          notificationRepository.findUnconfirmed(userId, condition);
 
       // then
-      assertThat(result).hasSize(2);
-      assertThat(result).allMatch(n -> n.getUserId().equals(userId));
-      assertThat(result).allMatch(n -> !n.isConfirmed());
+      assertThat(result.content()).hasSize(2);
+      assertThat(result.content()).allMatch(r -> r.userId().equals(userId));
     }
 
     @Test
@@ -67,14 +70,15 @@ class NotificationRepositoryTest {
           Notification.create(userId, "확인됨", ResourceType.INTEREST, UUID.randomUUID()));
       confirmed.confirm();
       notificationRepository.save(confirmed);
+      NotificationQueryCondition condition = new NotificationQueryCondition(null, null, 10);
 
       // when
-      List<Notification> result = notificationRepository.findUnconfirmedSlice(
-          userId, null, null, 10);
+      CursorPageResponse<NotificationResponse> result =
+          notificationRepository.findUnconfirmed(userId, condition);
 
       // then
-      assertThat(result).hasSize(1);
-      assertThat(result.get(0).getId()).isEqualTo(unconfirmed.getId());
+      assertThat(result.content()).hasSize(1);
+      assertThat(result.content().get(0).id()).isEqualTo(unconfirmed.getId());
     }
 
     @Test
@@ -86,31 +90,34 @@ class NotificationRepositoryTest {
       notificationRepository.save(
           Notification.create(UUID.randomUUID(), "타인 알림", ResourceType.INTEREST,
               UUID.randomUUID()));
+      NotificationQueryCondition condition = new NotificationQueryCondition(null, null, 10);
 
       // when
-      List<Notification> result = notificationRepository.findUnconfirmedSlice(
-          userId, null, null, 10);
+      CursorPageResponse<NotificationResponse> result =
+          notificationRepository.findUnconfirmed(userId, condition);
 
       // then
-      assertThat(result).hasSize(1);
-      assertThat(result.get(0).getUserId()).isEqualTo(userId);
+      assertThat(result.content()).hasSize(1);
+      assertThat(result.content().get(0).userId()).isEqualTo(userId);
     }
 
     @Test
-    @DisplayName("limit+1개를 반환해 다음 페이지 존재 여부를 판단할 수 있다")
-    void limit_초과_데이터가_있으면_limit_더하기_1개를_반환한다() {
+    @DisplayName("데이터가 limit보다 많으면 hasNext=true를 반환한다")
+    void 데이터가_limit보다_많으면_hasNext_true를_반환한다() {
       // given
       for (int i = 0; i < 3; i++) {
         notificationRepository.save(
             Notification.create(userId, "알림" + i, ResourceType.INTEREST, UUID.randomUUID()));
       }
+      NotificationQueryCondition condition = new NotificationQueryCondition(null, null, 2);
 
       // when
-      List<Notification> result = notificationRepository.findUnconfirmedSlice(
-          userId, null, null, 2);
+      CursorPageResponse<NotificationResponse> result =
+          notificationRepository.findUnconfirmed(userId, condition);
 
       // then
-      assertThat(result).hasSize(3);
+      assertThat(result.hasNext()).isTrue();
+      assertThat(result.content()).hasSize(2);
     }
   }
 

@@ -1,6 +1,10 @@
 package com.sprint.mission.monew.domain.notification.repository;
 
+import com.sprint.mission.monew.common.dto.CursorPageResponse;
+import com.sprint.mission.monew.domain.notification.dto.NotificationQueryCondition;
+import com.sprint.mission.monew.domain.notification.dto.NotificationResponse;
 import com.sprint.mission.monew.domain.notification.entity.Notification;
+import com.sprint.mission.monew.domain.notification.mapper.NotificationMapper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import java.time.Instant;
@@ -13,11 +17,17 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 public class NotificationRepositoryImpl implements NotificationRepositoryCustom {
 
+  private static final int DEFAULT_LIMIT = 50;
+
   private final EntityManager em;
+  private final NotificationMapper notificationMapper;
 
   @Override
-  public List<Notification> findUnconfirmedSlice(UUID userId, UUID cursorId,
-      Instant cursorCreatedAt, int limit) {
+  public CursorPageResponse<NotificationResponse> findUnconfirmed(UUID userId,
+      NotificationQueryCondition condition) {
+    int pageSize = condition.limit() != null ? condition.limit() : DEFAULT_LIMIT;
+    UUID cursorId = condition.cursor();
+    Instant cursorCreatedAt = condition.after();
     boolean firstPage = (cursorId == null || cursorCreatedAt == null);
 
     String jpql = """
@@ -33,13 +43,36 @@ public class NotificationRepositoryImpl implements NotificationRepositoryCustom 
 
     TypedQuery<Notification> query = em.createQuery(jpql, Notification.class)
         .setParameter("userId", userId)
-        .setMaxResults(limit + 1);
+        .setMaxResults(pageSize + 1);
 
     if (!firstPage) {
       query.setParameter("cursorCreatedAt", cursorCreatedAt);
       query.setParameter("cursorId", cursorId);
     }
 
-    return query.getResultList();
+    List<Notification> fetched = query.getResultList();
+    boolean hasNext = fetched.size() > pageSize;
+    List<Notification> page = hasNext ? fetched.subList(0, pageSize) : fetched;
+
+    List<NotificationResponse> content = page.stream()
+        .map(notificationMapper::toResponse)
+        .toList();
+
+    String nextCursor = null;
+    Instant nextAfter = null;
+    if (hasNext && !page.isEmpty()) {
+      Notification last = page.get(page.size() - 1);
+      nextCursor = last.getId().toString();
+      nextAfter = last.getCreatedAt();
+    }
+
+    long totalElements = em.createQuery(
+            "SELECT COUNT(n) FROM Notification n WHERE n.userId = :userId AND n.confirmedAt IS NULL",
+            Long.class)
+        .setParameter("userId", userId)
+        .getSingleResult();
+
+    return CursorPageResponse.of(content, nextCursor, nextAfter, hasNext, content.size(),
+        totalElements);
   }
 }
