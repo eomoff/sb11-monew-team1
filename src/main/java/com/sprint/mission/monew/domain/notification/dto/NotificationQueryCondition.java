@@ -1,16 +1,15 @@
 package com.sprint.mission.monew.domain.notification.dto;
 
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
 import java.util.UUID;
-import org.springframework.format.annotation.DateTimeFormat;
 
 public record NotificationQueryCondition(
     UUID cursor,
 
-    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     Instant after,
 
     @NotNull(message = "limit은 필수입니다")
@@ -21,5 +20,10 @@ public record NotificationQueryCondition(
 
   public boolean hasCursor() {
     return cursor != null && after != null;
+  }
+
+  @AssertTrue(message = "cursor와 after는 함께 입력해야 합니다")
+  public boolean isCursorPaired() {
+    return (cursor == null) == (after == null);
   }
 }
