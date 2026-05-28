@@ -7,7 +7,7 @@ import java.time.Instant;
 import java.util.UUID;
 import org.springframework.format.annotation.DateTimeFormat;
 
-public record NotificationSearchRequest(
+public record NotificationQueryCondition(
     UUID cursor,
 
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)

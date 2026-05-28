@@ -1,8 +1,8 @@
 package com.sprint.mission.monew.domain.notification.controller;
 
 import com.sprint.mission.monew.common.dto.CursorPageResponse;
+import com.sprint.mission.monew.domain.notification.dto.NotificationQueryCondition;
 import com.sprint.mission.monew.domain.notification.dto.NotificationResponse;
-import com.sprint.mission.monew.domain.notification.dto.NotificationSearchRequest;
 import com.sprint.mission.monew.domain.notification.service.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -29,7 +29,7 @@ public class NotificationController {
   @GetMapping
   public ResponseEntity<CursorPageResponse<NotificationResponse>> findUnconfirmed(
       @Parameter(hidden = true) @RequestHeader("Monew-Request-User-ID") UUID userId,
-      @Valid @ModelAttribute NotificationSearchRequest request
+      @Valid @ModelAttribute NotificationQueryCondition request
   ) {
     return ResponseEntity.ok(notificationService.findUnconfirmed(userId, request));
   }

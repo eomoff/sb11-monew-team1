@@ -2,8 +2,8 @@ package com.sprint.mission.monew.domain.notification.service;
 
 
 import com.sprint.mission.monew.common.dto.CursorPageResponse;
+import com.sprint.mission.monew.domain.notification.dto.NotificationQueryCondition;
 import com.sprint.mission.monew.domain.notification.dto.NotificationResponse;
-import com.sprint.mission.monew.domain.notification.dto.NotificationSearchRequest;
 import com.sprint.mission.monew.domain.notification.entity.Notification;
 import com.sprint.mission.monew.domain.notification.mapper.NotificationMapper;
 import com.sprint.mission.monew.domain.notification.repository.NotificationRepository;
@@ -26,7 +26,7 @@ public class NotificationService {
   private final NotificationMapper notificationMapper;
 
   public CursorPageResponse<NotificationResponse> findUnconfirmed(UUID userId,
-      NotificationSearchRequest request) {
+      NotificationQueryCondition request) {
     int pageSize = resolvePageSize(request.limit());
     List<Notification> fetched = notificationRepository.findUnconfirmedSlice(
         userId, request.cursor(), request.after(), pageSize);
