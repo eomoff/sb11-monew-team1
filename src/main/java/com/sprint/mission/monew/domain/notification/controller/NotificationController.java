@@ -1,12 +1,10 @@
 package com.sprint.mission.monew.domain.notification.controller;
 
 import com.sprint.mission.monew.common.dto.CursorPageResponse;
+import com.sprint.mission.monew.domain.notification.controller.api.NotificationApi;
 import com.sprint.mission.monew.domain.notification.dto.NotificationQueryCondition;
 import com.sprint.mission.monew.domain.notification.dto.NotificationResponse;
 import com.sprint.mission.monew.domain.notification.service.NotificationService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -17,18 +15,17 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "Notification", description = "알림 API")
 @RestController
 @RequestMapping("/api/notifications")
 @RequiredArgsConstructor
-public class NotificationController {
+public class NotificationController implements NotificationApi {
 
   private final NotificationService notificationService;
 
-  @Operation(summary = "미확인 알림 목록 조회 (커서 페이지네이션)")
+  @Override
   @GetMapping
   public ResponseEntity<CursorPageResponse<NotificationResponse>> findUnconfirmed(
-      @Parameter(hidden = true) @RequestHeader("Monew-Request-User-ID") UUID userId,
+      @RequestHeader("Monew-Request-User-ID") UUID userId,
       @Valid @ModelAttribute NotificationQueryCondition request
   ) {
     return ResponseEntity.ok(notificationService.findUnconfirmed(userId, request));
