@@ -50,12 +50,12 @@ class NotificationControllerTest {
     }
 
     @Test
-    @DisplayName("Monew-Request-User-ID 헤더가 없으면 500을 반환한다")
-    void 헤더가_없으면_500을_반환한다() throws Exception {
+    @DisplayName("Monew-Request-User-ID 헤더가 없으면 400을 반환한다")
+    void 헤더가_없으면_400을_반환한다() throws Exception {
       // when & then
       mockMvc
           .perform(get("/api/notifications").param("limit", "10"))
-          .andExpect(status().isInternalServerError());
+          .andExpect(status().isBadRequest());
 
       verifyNoInteractions(notificationService);
     }
