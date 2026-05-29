@@ -139,6 +139,39 @@ class NotificationRepositoryTest {
       // then
       assertThat(result).isEmpty();
     }
+
+    @Test
+    @DisplayName("다른 사용자의 알림이면 빈 Optional을 반환한다")
+    void 다른_사용자의_알림이면_빈_Optional을_반환한다() {
+      // given
+      UUID otherUserId = UUID.randomUUID();
+      Notification notification = notificationRepository.save(
+          Notification.create(otherUserId, "타인 알림", ResourceType.INTEREST, UUID.randomUUID()));
+
+      // when
+      Optional<Notification> result = notificationRepository.findByIdAndUserId(
+          notification.getId(), userId);
+
+      // then
+      assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("id와 userId가 모두 일치하면 알림을 반환한다")
+    void id와_userId가_모두_일치하면_알림을_반환한다() {
+      // given
+      Notification notification = notificationRepository.save(
+          Notification.create(userId, "내 알림", ResourceType.INTEREST, UUID.randomUUID()));
+
+      // when
+      Optional<Notification> result = notificationRepository.findByIdAndUserId(
+          notification.getId(), userId);
+
+      // then
+      assertThat(result).isPresent();
+      assertThat(result.get().getId()).isEqualTo(notification.getId());
+      assertThat(result.get().getUserId()).isEqualTo(userId);
+    }
   }
 
   @Nested
