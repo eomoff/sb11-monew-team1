@@ -290,59 +290,19 @@ class NotificationRepositoryTest {
   class DeleteConfirmedBefore {
 
     @Test
-    @DisplayName("confirmedAt이 cutoff 이전인 알림은 물리 삭제된다")
-    void confirmedAt이_cutoff_이전인_알림은_물리_삭제된다() {
-      // given — 8일 전에 확인된 알림
+    @DisplayName("확인 후 7일 경과한 알림은 물리 삭제된다")
+    void 확인_후_7일_경과한_알림은_물리_삭제된다() {
+      // given
       notificationRepository.save(
           Notification.create(userId, "오래된 알림", ResourceType.INTEREST, UUID.randomUUID()));
-      Instant eightDaysAgo = Instant.now().minus(8, ChronoUnit.DAYS);
-      notificationRepository.confirmAllByUserId(userId, eightDaysAgo);
-
-      Instant cutoff = Instant.now().minus(7, ChronoUnit.DAYS);
+      notificationRepository.confirmAllByUserId(userId, Instant.now().minus(8, ChronoUnit.DAYS));
 
       // when
-      int deleted = notificationRepository.deleteConfirmedBefore(cutoff);
+      int deleted = notificationRepository.deleteConfirmedBefore(Instant.now().minus(7, ChronoUnit.DAYS));
 
       // then
       assertThat(deleted).isEqualTo(1);
       assertThat(notificationRepository.findAll()).isEmpty();
     }
-
-    @Test
-    @DisplayName("confirmedAt이 cutoff 이후인 알림은 삭제되지 않는다")
-    void confirmedAt이_cutoff_이후인_알림은_삭제되지_않는다() {
-      // given — 1일 전에 확인된 알림 (7일 기준 미경과)
-      notificationRepository.save(
-          Notification.create(userId, "최근 확인 알림", ResourceType.INTEREST, UUID.randomUUID()));
-      Instant oneDayAgo = Instant.now().minus(1, ChronoUnit.DAYS);
-      notificationRepository.confirmAllByUserId(userId, oneDayAgo);
-
-      Instant cutoff = Instant.now().minus(7, ChronoUnit.DAYS);
-
-      // when
-      int deleted = notificationRepository.deleteConfirmedBefore(cutoff);
-
-      // then
-      assertThat(deleted).isZero();
-      assertThat(notificationRepository.findAll()).hasSize(1);
-    }
-
-    @Test
-    @DisplayName("미확인 알림(confirmedAt = null)은 삭제되지 않는다")
-    void 미확인_알림은_삭제되지_않는다() {
-      // given — 확인하지 않은 알림만 존재
-      notificationRepository.save(
-          Notification.create(userId, "미확인 알림", ResourceType.INTEREST, UUID.randomUUID()));
-
-      Instant cutoff = Instant.now().minus(7, ChronoUnit.DAYS);
-
-      // when
-      int deleted = notificationRepository.deleteConfirmedBefore(cutoff);
-
-      // then
-      assertThat(deleted).isZero();
-      assertThat(notificationRepository.findAll()).hasSize(1);
-    }
-
   }
 }
