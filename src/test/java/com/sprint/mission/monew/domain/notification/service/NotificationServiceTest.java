@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import java.time.Instant;
 
 import com.sprint.mission.monew.common.dto.CursorPageResponse;
 import com.sprint.mission.monew.domain.notification.dto.NotificationQueryCondition;
@@ -121,6 +122,21 @@ class NotificationServiceTest {
       // then
       assertThat(result).isEqualTo(expected);
       then(notificationRepository).should().findUnconfirmed(userId, condition);
+    }
+  }
+
+  @Nested
+  @DisplayName("만료 알림 일괄 삭제")
+  class DeleteExpiredNotifications {
+
+    @Test
+    @DisplayName("7일 경과 기준 cutoff로 repository.deleteConfirmedBefore에 위임한다")
+    void 만료_기준_cutoff로_repository_deleteConfirmedBefore에_위임한다() {
+      // when
+      notificationService.deleteExpiredNotifications();
+
+      // then
+      then(notificationRepository).should().deleteConfirmedBefore(any(Instant.class));
     }
   }
 }
