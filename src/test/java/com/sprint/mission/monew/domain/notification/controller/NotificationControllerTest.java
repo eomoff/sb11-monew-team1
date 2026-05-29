@@ -76,6 +76,20 @@ class NotificationControllerTest {
   }
 
   @Nested
+  @DisplayName("PATCH /api/notifications — 알림 전체 확인")
+  class ConfirmAllNotifications {
+
+    @Test
+    @DisplayName("Monew-Request-User-ID 헤더가 없으면 400을 반환한다")
+    void 헤더가_없으면_400을_반환한다() throws Exception {
+      // when & then
+      mockMvc
+          .perform(patch("/api/notifications"))
+          .andExpect(status().isBadRequest());
+    }
+  }
+
+  @Nested
   @DisplayName("GET /api/notifications — 미확인 알림 목록 조회")
   class FindUnconfirmed {
 
