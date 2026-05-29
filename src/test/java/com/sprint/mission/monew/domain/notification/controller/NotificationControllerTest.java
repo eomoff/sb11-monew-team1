@@ -26,8 +26,10 @@ import org.springframework.test.web.servlet.MockMvc;
 @WebMvcTest(NotificationController.class)
 class NotificationControllerTest {
 
-  @Autowired MockMvc mockMvc;
-  @MockitoBean NotificationService notificationService;
+  @Autowired
+  MockMvc mockMvc;
+  @MockitoBean
+  NotificationService notificationService;
 
   @Nested
   @DisplayName("PATCH /api/notifications/{notificationId} — 알림 단건 확인")
@@ -40,6 +42,22 @@ class NotificationControllerTest {
       mockMvc
           .perform(patch("/api/notifications/{notificationId}", UUID.randomUUID()))
           .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("해당 사용자의 알림을 찾을 수 없으면 404를 반환한다")
+    void 해당_사용자의_알림을_찾을_수_없으면_404를_반환한다() throws Exception {
+      // given
+      UUID notificationId = UUID.randomUUID();
+      UUID userId = UUID.randomUUID();
+      willThrow(NotificationNotFoundException.withId(notificationId))
+          .given(notificationService).confirm(notificationId, userId);
+
+      // when & then
+      mockMvc
+          .perform(patch("/api/notifications/{notificationId}", notificationId)
+              .header("Monew-Request-User-ID", userId))
+          .andExpect(status().isNotFound());
     }
   }
 
