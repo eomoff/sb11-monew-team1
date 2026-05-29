@@ -87,6 +87,19 @@ class NotificationControllerTest {
           .perform(patch("/api/notifications"))
           .andExpect(status().isBadRequest());
     }
+
+    @Test
+    @DisplayName("알림 전체 확인 성공 시 204를 반환한다")
+    void 알림_전체_확인_성공_시_204를_반환한다() throws Exception {
+      // given
+      UUID userId = UUID.randomUUID();
+
+      // when & then
+      mockMvc
+          .perform(patch("/api/notifications")
+              .header("Monew-Request-User-ID", userId))
+          .andExpect(status().isNoContent());
+    }
   }
 
   @Nested
