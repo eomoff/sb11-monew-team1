@@ -10,6 +10,7 @@ import com.sprint.mission.monew.domain.notification.dto.NotificationResponse;
 import com.sprint.mission.monew.domain.notification.entity.Notification;
 import com.sprint.mission.monew.domain.notification.entity.ResourceType;
 
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -119,6 +120,24 @@ class NotificationRepositoryTest {
       // then
       assertThat(result.hasNext()).isTrue();
       assertThat(result.content()).hasSize(2);
+    }
+  }
+
+  @Nested
+  @DisplayName("findByIdAndUserId")
+  class FindByIdAndUserId {
+
+    @Test
+    @DisplayName("존재하지 않는 알림 ID면 빈 Optional을 반환한다")
+    void 존재하지_않는_알림_ID면_빈_Optional을_반환한다() {
+      // given
+      UUID notExistId = UUID.randomUUID();
+
+      // when
+      Optional<Notification> result = notificationRepository.findByIdAndUserId(notExistId, userId);
+
+      // then
+      assertThat(result).isEmpty();
     }
   }
 
