@@ -214,6 +214,24 @@ class NotificationRepositoryTest {
       List<Notification> all = notificationRepository.findAll();
       assertThat(all).allMatch(Notification::isConfirmed);
     }
+
+    @Test
+    @DisplayName("이미 확인된 알림은 confirmAll 호출 후에도 confirmedAt이 변경되지 않는다")
+    void 이미_확인된_알림은_confirmAll_호출_후에도_confirmedAt이_변경되지_않는다() {
+      // given
+      Notification confirmed = notificationRepository.save(
+          Notification.create(userId, "확인됨", ResourceType.INTEREST, UUID.randomUUID()));
+      confirmed.confirm();
+      notificationRepository.save(confirmed);
+      Instant originalConfirmedAt = confirmed.getConfirmedAt();
+
+      // when
+      notificationRepository.confirmAllByUserId(userId, Instant.now());
+
+      // then
+      Notification reloaded = notificationRepository.findById(confirmed.getId()).orElseThrow();
+      assertThat(reloaded.getConfirmedAt()).isEqualTo(originalConfirmedAt);
+    }
   }
 
   @Nested
