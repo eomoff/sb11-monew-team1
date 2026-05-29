@@ -216,6 +216,16 @@ class NotificationRepositoryTest {
     }
 
     @Test
+    @DisplayName("미확인 알림이 0건이어도 예외 없이 동작한다")
+    void 미확인_알림이_0건이어도_예외_없이_동작한다() {
+      // given — 알림 없음
+
+      // when & then
+      org.junit.jupiter.api.Assertions.assertDoesNotThrow(
+          () -> notificationRepository.confirmAllByUserId(userId, Instant.now()));
+    }
+
+    @Test
     @DisplayName("이미 확인된 알림은 confirmAll 호출 후에도 confirmedAt이 변경되지 않는다")
     void 이미_확인된_알림은_confirmAll_호출_후에도_confirmedAt이_변경되지_않는다() {
       // given
