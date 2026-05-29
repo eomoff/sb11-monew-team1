@@ -61,8 +61,8 @@ class NotificationControllerTest {
     }
 
     @Test
-    @DisplayName("알림 확인 성공 시 200을 반환한다")
-    void 알림_확인_성공_시_200을_반환한다() throws Exception {
+    @DisplayName("알림 확인 성공 시 204를 반환한다")
+    void 알림_확인_성공_시_204를_반환한다() throws Exception {
       // given
       UUID notificationId = UUID.randomUUID();
       UUID userId = UUID.randomUUID();
@@ -71,7 +71,7 @@ class NotificationControllerTest {
       mockMvc
           .perform(patch("/api/notifications/{notificationId}", notificationId)
               .header("Monew-Request-User-ID", userId))
-          .andExpect(status().isOk());
+          .andExpect(status().isNoContent());
     }
   }
 

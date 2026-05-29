@@ -40,6 +40,6 @@ public class NotificationController implements NotificationApi {
       @RequestHeader("Monew-Request-User-ID") UUID userId
   ) {
     notificationService.confirm(notificationId, userId);
-    return ResponseEntity.ok().build();
+    return ResponseEntity.noContent().build();
   }
 }
