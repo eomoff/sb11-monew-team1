@@ -91,6 +91,14 @@ class NotificationServiceTest {
       // then
       then(notificationRepository).should().confirmAllByUserId(any(UUID.class), any());
     }
+
+    @Test
+    @DisplayName("알림이 없어도 예외 없이 동작한다")
+    void 알림이_없어도_예외_없이_동작한다() {
+      // when & then
+      org.junit.jupiter.api.Assertions.assertDoesNotThrow(
+          () -> notificationService.confirmAll(userId));
+    }
   }
 
   @Nested
