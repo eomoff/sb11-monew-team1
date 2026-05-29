@@ -15,7 +15,7 @@ public class NotificationScheduler {
 
   private final NotificationService notificationService;
 
-  @Scheduled(cron = "${scheduler.notification-cleanup.cron}")
+  @Scheduled(cron = "0 0 0 * * *")
   public void cleanUpExpiredNotifications() {
     log.debug("만료 알림 삭제 스케줄러 실행");
     notificationService.deleteExpiredNotifications();
