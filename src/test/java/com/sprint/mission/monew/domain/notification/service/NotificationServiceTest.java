@@ -8,9 +8,12 @@ import static org.mockito.BDDMockito.then;
 import com.sprint.mission.monew.common.dto.CursorPageResponse;
 import com.sprint.mission.monew.domain.notification.dto.NotificationQueryCondition;
 import com.sprint.mission.monew.domain.notification.dto.NotificationResponse;
+import com.sprint.mission.monew.domain.notification.entity.Notification;
+import com.sprint.mission.monew.domain.notification.entity.ResourceType;
 import com.sprint.mission.monew.domain.notification.exception.NotificationNotFoundException;
 import com.sprint.mission.monew.domain.notification.mapper.NotificationMapper;
 import com.sprint.mission.monew.domain.notification.repository.NotificationRepository;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -55,6 +58,42 @@ class NotificationServiceTest {
       // when & then
       assertThatThrownBy(() -> notificationService.confirm(notificationId, userId))
           .isInstanceOf(NotificationNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("이미 확인된 알림이어도 예외 없이 정상 처리된다")
+    void 이미_확인된_알림이어도_예외_없이_정상_처리된다() {
+      // given
+      UUID notificationId = UUID.randomUUID();
+      Notification notification = Notification.create(userId, "알림", ResourceType.INTEREST,
+          UUID.randomUUID());
+      notification.confirm();
+      Instant confirmedAt = notification.getConfirmedAt();
+      given(notificationRepository.findByIdAndUserId(notificationId, userId))
+          .willReturn(Optional.of(notification));
+
+      // when
+      notificationService.confirm(notificationId, userId);
+
+      // then
+      assertThat(notification.getConfirmedAt()).isEqualTo(confirmedAt);
+    }
+
+    @Test
+    @DisplayName("성공 시 알림의 confirm()이 호출된다")
+    void 성공_시_알림의_confirm이_호출된다() {
+      // given
+      UUID notificationId = UUID.randomUUID();
+      Notification notification = Notification.create(userId, "알림", ResourceType.INTEREST,
+          UUID.randomUUID());
+      given(notificationRepository.findByIdAndUserId(notificationId, userId))
+          .willReturn(Optional.of(notification));
+
+      // when
+      notificationService.confirm(notificationId, userId);
+
+      // then
+      assertThat(notification.getConfirmedAt()).isNotNull();
     }
   }
 
