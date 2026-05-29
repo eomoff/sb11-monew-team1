@@ -11,6 +11,7 @@ import com.sprint.mission.monew.domain.notification.entity.Notification;
 import com.sprint.mission.monew.domain.notification.entity.ResourceType;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -233,14 +234,14 @@ class NotificationRepositoryTest {
           Notification.create(userId, "확인됨", ResourceType.INTEREST, UUID.randomUUID()));
       confirmed.confirm();
       notificationRepository.save(confirmed);
-      Instant originalConfirmedAt = confirmed.getConfirmedAt();
+      Instant originalConfirmedAt = confirmed.getConfirmedAt().truncatedTo(ChronoUnit.MICROS);
 
       // when
       notificationRepository.confirmAllByUserId(userId, Instant.now());
 
       // then
       Notification reloaded = notificationRepository.findById(confirmed.getId()).orElseThrow();
-      assertThat(reloaded.getConfirmedAt()).isEqualTo(originalConfirmedAt);
+      assertThat(reloaded.getConfirmedAt().truncatedTo(ChronoUnit.MICROS)).isEqualTo(originalConfirmedAt);
     }
   }
 

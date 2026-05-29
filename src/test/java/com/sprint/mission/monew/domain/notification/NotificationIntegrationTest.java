@@ -50,20 +50,27 @@ public class NotificationIntegrationTest {
   class FindUnconfirmed {
 
     @Test
-    @DisplayName("미확인 알림 목록을 반환한다")
-    void 미확인_알림_목록을_반환한다() throws Exception {
+    @DisplayName("미확인 알림 목록과 응답 필드를 올바르게 반환한다")
+    void 미확인_알림_목록과_응답_필드를_올바르게_반환한다() throws Exception {
       // given
+      UUID resourceId = UUID.randomUUID();
       notificationRepository.save(
-          Notification.create(user.getId(), "알림1", ResourceType.INTEREST, UUID.randomUUID()));
-      notificationRepository.save(
-          Notification.create(user.getId(), "알림2", ResourceType.INTEREST, UUID.randomUUID()));
+          Notification.create(user.getId(), "알림 내용", ResourceType.INTEREST, resourceId));
 
       // when & then
       mockMvc.perform(get("/api/notifications")
               .header("Monew-Request-User-ID", user.getId()))
           .andExpect(status().isOk())
-          .andExpect(jsonPath("$.content.length()").value(2))
-          .andExpect(jsonPath("$.totalElements").value(2));
+          .andExpect(jsonPath("$.content.length()").value(1))
+          .andExpect(jsonPath("$.totalElements").value(1))
+          .andExpect(jsonPath("$.hasNext").value(false))
+          .andExpect(jsonPath("$.content[0].id").exists())
+          .andExpect(jsonPath("$.content[0].createdAt").exists())
+          .andExpect(jsonPath("$.content[0].confirmed").value(false))
+          .andExpect(jsonPath("$.content[0].userId").value(user.getId().toString()))
+          .andExpect(jsonPath("$.content[0].content").value("알림 내용"))
+          .andExpect(jsonPath("$.content[0].resourceType").value("INTEREST"))
+          .andExpect(jsonPath("$.content[0].resourceId").value(resourceId.toString()));
     }
 
     @Test
@@ -81,13 +88,34 @@ public class NotificationIntegrationTest {
       mockMvc.perform(get("/api/notifications")
               .header("Monew-Request-User-ID", user.getId()))
           .andExpect(status().isOk())
-          .andExpect(jsonPath("$.content.length()").value(1));
+          .andExpect(jsonPath("$.content.length()").value(1))
+          .andExpect(jsonPath("$.totalElements").value(1))
+          .andExpect(jsonPath("$.content[0].confirmed").value(false));
+    }
+
+    @Test
+    @DisplayName("limit보다 알림이 많으면 hasNext=true와 nextCursor를 반환한다")
+    void limit보다_알림이_많으면_hasNext와_nextCursor를_반환한다() throws Exception {
+      // given
+      for (int i = 0; i < 3; i++) {
+        notificationRepository.save(
+            Notification.create(user.getId(), "알림" + i, ResourceType.INTEREST, UUID.randomUUID()));
+      }
+
+      // when & then
+      mockMvc.perform(get("/api/notifications")
+              .header("Monew-Request-User-ID", user.getId())
+              .param("limit", "2"))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.content.length()").value(2))
+          .andExpect(jsonPath("$.hasNext").value(true))
+          .andExpect(jsonPath("$.nextCursor").exists())
+          .andExpect(jsonPath("$.nextAfter").exists());
     }
 
     @Test
     @DisplayName("Monew-Request-User-ID 헤더가 없으면 400을 반환한다")
     void 헤더가_없으면_400을_반환한다() throws Exception {
-      // when & then
       mockMvc.perform(get("/api/notifications"))
           .andExpect(status().isBadRequest());
     }
@@ -98,28 +126,49 @@ public class NotificationIntegrationTest {
   class Confirm {
 
     @Test
-    @DisplayName("알림 단건 확인 성공 시 DB에 confirmedAt이 설정된다")
-    void 알림_단건_확인_성공_시_DB에_confirmedAt이_설정된다() throws Exception {
+    @DisplayName("성공 시 204를 반환하고 DB에 confirmedAt이 설정된다")
+    void 성공_시_204를_반환하고_DB에_confirmedAt이_설정된다() throws Exception {
       // given
       Notification notification = notificationRepository.save(
           Notification.create(user.getId(), "알림", ResourceType.INTEREST, UUID.randomUUID()));
 
-      // when & then
+      // when
       mockMvc.perform(patch("/api/notifications/{notificationId}", notification.getId())
               .header("Monew-Request-User-ID", user.getId()))
           .andExpect(status().isNoContent());
 
-      Notification confirmed = notificationRepository.findById(notification.getId()).orElseThrow();
-      assertThat(confirmed.isConfirmed()).isTrue();
+      // then — DB 상태 검증
+      Notification result = notificationRepository.findById(notification.getId()).orElseThrow();
+      assertThat(result.isConfirmed()).isTrue();
+      assertThat(result.getConfirmedAt()).isNotNull();
     }
 
     @Test
-    @DisplayName("존재하지 않는 알림 확인 시 404를 반환한다")
-    void 존재하지_않는_알림_확인_시_404를_반환한다() throws Exception {
+    @DisplayName("이미 확인된 알림을 재확인하면 404를 반환한다")
+    void 이미_확인된_알림을_재확인하면_404를_반환한다() throws Exception {
+      // given
+      Notification notification = notificationRepository.save(
+          Notification.create(user.getId(), "알림", ResourceType.INTEREST, UUID.randomUUID()));
+      notification.confirm();
+      notificationRepository.save(notification);
+
+      // when & then
+      mockMvc.perform(patch("/api/notifications/{notificationId}", notification.getId())
+              .header("Monew-Request-User-ID", user.getId()))
+          .andExpect(status().isNotFound())
+          .andExpect(jsonPath("$.status").value(404))
+          .andExpect(jsonPath("$.message").exists());
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 알림 확인 시 404와 에러 응답을 반환한다")
+    void 존재하지_않는_알림_확인_시_404와_에러_응답을_반환한다() throws Exception {
       // when & then
       mockMvc.perform(patch("/api/notifications/{notificationId}", UUID.randomUUID())
               .header("Monew-Request-User-ID", user.getId()))
-          .andExpect(status().isNotFound());
+          .andExpect(status().isNotFound())
+          .andExpect(jsonPath("$.status").value(404))
+          .andExpect(jsonPath("$.message").exists());
     }
 
     @Test
@@ -133,13 +182,13 @@ public class NotificationIntegrationTest {
       // when & then
       mockMvc.perform(patch("/api/notifications/{notificationId}", notification.getId())
               .header("Monew-Request-User-ID", user.getId()))
-          .andExpect(status().isNotFound());
+          .andExpect(status().isNotFound())
+          .andExpect(jsonPath("$.status").value(404));
     }
 
     @Test
     @DisplayName("Monew-Request-User-ID 헤더가 없으면 400을 반환한다")
     void 헤더가_없으면_400을_반환한다() throws Exception {
-      // when & then
       mockMvc.perform(patch("/api/notifications/{notificationId}", UUID.randomUUID()))
           .andExpect(status().isBadRequest());
     }
@@ -150,19 +199,20 @@ public class NotificationIntegrationTest {
   class ConfirmAll {
 
     @Test
-    @DisplayName("알림 전체 확인 성공 시 DB의 모든 미확인 알림에 confirmedAt이 설정된다")
-    void 알림_전체_확인_성공_시_DB의_모든_미확인_알림에_confirmedAt이_설정된다() throws Exception {
+    @DisplayName("성공 시 204를 반환하고 DB의 모든 미확인 알림에 confirmedAt이 설정된다")
+    void 성공_시_204를_반환하고_DB의_모든_미확인_알림에_confirmedAt이_설정된다() throws Exception {
       // given
       notificationRepository.save(
           Notification.create(user.getId(), "알림1", ResourceType.INTEREST, UUID.randomUUID()));
       notificationRepository.save(
           Notification.create(user.getId(), "알림2", ResourceType.COMMENT, UUID.randomUUID()));
 
-      // when & then
+      // when
       mockMvc.perform(patch("/api/notifications")
               .header("Monew-Request-User-ID", user.getId()))
           .andExpect(status().isNoContent());
 
+      // then — DB 상태 검증
       long unconfirmedCount = notificationRepository.countByUserIdAndConfirmedAtIsNull(user.getId());
       assertThat(unconfirmedCount).isZero();
     }
@@ -188,9 +238,31 @@ public class NotificationIntegrationTest {
     }
 
     @Test
+    @DisplayName("전체 확인 후 목록 조회 시 미확인 알림이 0건이다")
+    void 전체_확인_후_목록_조회_시_미확인_알림이_0건이다() throws Exception {
+      // given
+      notificationRepository.save(
+          Notification.create(user.getId(), "알림1", ResourceType.INTEREST, UUID.randomUUID()));
+      notificationRepository.save(
+          Notification.create(user.getId(), "알림2", ResourceType.INTEREST, UUID.randomUUID()));
+
+      // when — 전체 확인
+      mockMvc.perform(patch("/api/notifications")
+              .header("Monew-Request-User-ID", user.getId()))
+          .andExpect(status().isNoContent());
+
+      // then — 목록 조회 시 0건
+      mockMvc.perform(get("/api/notifications")
+              .header("Monew-Request-User-ID", user.getId()))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.content.length()").value(0))
+          .andExpect(jsonPath("$.totalElements").value(0))
+          .andExpect(jsonPath("$.hasNext").value(false));
+    }
+
+    @Test
     @DisplayName("Monew-Request-User-ID 헤더가 없으면 400을 반환한다")
     void 헤더가_없으면_400을_반환한다() throws Exception {
-      // when & then
       mockMvc.perform(patch("/api/notifications"))
           .andExpect(status().isBadRequest());
     }
