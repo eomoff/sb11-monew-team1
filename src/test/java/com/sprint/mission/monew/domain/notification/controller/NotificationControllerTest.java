@@ -59,6 +59,20 @@ class NotificationControllerTest {
               .header("Monew-Request-User-ID", userId))
           .andExpect(status().isNotFound());
     }
+
+    @Test
+    @DisplayName("알림 확인 성공 시 200을 반환한다")
+    void 알림_확인_성공_시_200을_반환한다() throws Exception {
+      // given
+      UUID notificationId = UUID.randomUUID();
+      UUID userId = UUID.randomUUID();
+
+      // when & then
+      mockMvc
+          .perform(patch("/api/notifications/{notificationId}", notificationId)
+              .header("Monew-Request-User-ID", userId))
+          .andExpect(status().isOk());
+    }
   }
 
   @Nested
