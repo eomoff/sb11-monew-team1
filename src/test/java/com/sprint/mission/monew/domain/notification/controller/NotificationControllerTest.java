@@ -2,13 +2,16 @@ package com.sprint.mission.monew.domain.notification.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.sprint.mission.monew.common.dto.CursorPageResponse;
 import com.sprint.mission.monew.domain.notification.dto.NotificationResponse;
+import com.sprint.mission.monew.domain.notification.exception.NotificationNotFoundException;
 import com.sprint.mission.monew.domain.notification.service.NotificationService;
 import java.util.List;
 import java.util.UUID;
@@ -25,6 +28,20 @@ class NotificationControllerTest {
 
   @Autowired MockMvc mockMvc;
   @MockitoBean NotificationService notificationService;
+
+  @Nested
+  @DisplayName("PATCH /api/notifications/{notificationId} — 알림 단건 확인")
+  class ConfirmNotification {
+
+    @Test
+    @DisplayName("Monew-Request-User-ID 헤더가 없으면 400을 반환한다")
+    void 헤더가_없으면_400을_반환한다() throws Exception {
+      // when & then
+      mockMvc
+          .perform(patch("/api/notifications/{notificationId}", UUID.randomUUID()))
+          .andExpect(status().isBadRequest());
+    }
+  }
 
   @Nested
   @DisplayName("GET /api/notifications — 미확인 알림 목록 조회")
