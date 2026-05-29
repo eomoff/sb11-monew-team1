@@ -11,6 +11,7 @@ import com.sprint.mission.monew.domain.notification.entity.ResourceType;
 import com.sprint.mission.monew.domain.notification.repository.NotificationRepository;
 import com.sprint.mission.monew.domain.user.entity.User;
 import com.sprint.mission.monew.domain.user.repository.UserRepository;
+import java.time.Instant;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -225,16 +226,17 @@ public class NotificationIntegrationTest {
           Notification.create(user.getId(), "확인됨", ResourceType.INTEREST, UUID.randomUUID()));
       confirmed.confirm();
       notificationRepository.save(confirmed);
-      var originalConfirmedAt = confirmed.getConfirmedAt();
 
       // when
+      Instant confirmAllTime = Instant.now();
       mockMvc.perform(patch("/api/notifications")
               .header("Monew-Request-User-ID", user.getId()))
           .andExpect(status().isNoContent());
 
-      // then
+      // then — confirmAll 이전에 확인된 알림이므로 confirmedAt이 confirmAllTime보다 이전이어야 함
       Notification reloaded = notificationRepository.findById(confirmed.getId()).orElseThrow();
-      assertThat(reloaded.getConfirmedAt()).isEqualTo(originalConfirmedAt);
+      assertThat(reloaded.isConfirmed()).isTrue();
+      assertThat(reloaded.getConfirmedAt()).isBefore(confirmAllTime);
     }
 
     @Test

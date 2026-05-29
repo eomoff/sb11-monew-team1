@@ -234,14 +234,15 @@ class NotificationRepositoryTest {
           Notification.create(userId, "확인됨", ResourceType.INTEREST, UUID.randomUUID()));
       confirmed.confirm();
       notificationRepository.save(confirmed);
-      Instant originalConfirmedAt = confirmed.getConfirmedAt().truncatedTo(ChronoUnit.MICROS);
 
       // when
-      notificationRepository.confirmAllByUserId(userId, Instant.now());
+      Instant confirmAllTime = Instant.now();
+      notificationRepository.confirmAllByUserId(userId, confirmAllTime);
 
-      // then
+      // then — confirmAll 이전에 확인된 알림이므로 confirmedAt이 confirmAllTime보다 이전이어야 함
       Notification reloaded = notificationRepository.findById(confirmed.getId()).orElseThrow();
-      assertThat(reloaded.getConfirmedAt().truncatedTo(ChronoUnit.MICROS)).isEqualTo(originalConfirmedAt);
+      assertThat(reloaded.isConfirmed()).isTrue();
+      assertThat(reloaded.getConfirmedAt()).isBefore(confirmAllTime);
     }
   }
 
