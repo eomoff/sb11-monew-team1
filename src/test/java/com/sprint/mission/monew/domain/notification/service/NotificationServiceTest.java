@@ -13,7 +13,6 @@ import com.sprint.mission.monew.domain.notification.entity.ResourceType;
 import com.sprint.mission.monew.domain.notification.exception.NotificationNotFoundException;
 import com.sprint.mission.monew.domain.notification.mapper.NotificationMapper;
 import com.sprint.mission.monew.domain.notification.repository.NotificationRepository;
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -52,31 +51,12 @@ class NotificationServiceTest {
     void 알림이_존재하지_않으면_NotificationNotFoundException이_발생한다() {
       // given
       UUID notificationId = UUID.randomUUID();
-      given(notificationRepository.findByIdAndUserId(notificationId, userId))
+      given(notificationRepository.findByIdAndUserIdAndConfirmedAtIsNull(notificationId, userId))
           .willReturn(Optional.empty());
 
       // when & then
       assertThatThrownBy(() -> notificationService.confirm(notificationId, userId))
           .isInstanceOf(NotificationNotFoundException.class);
-    }
-
-    @Test
-    @DisplayName("이미 확인된 알림이어도 예외 없이 정상 처리된다")
-    void 이미_확인된_알림이어도_예외_없이_정상_처리된다() {
-      // given
-      UUID notificationId = UUID.randomUUID();
-      Notification notification = Notification.create(userId, "알림", ResourceType.INTEREST,
-          UUID.randomUUID());
-      notification.confirm();
-      Instant confirmedAt = notification.getConfirmedAt();
-      given(notificationRepository.findByIdAndUserId(notificationId, userId))
-          .willReturn(Optional.of(notification));
-
-      // when
-      notificationService.confirm(notificationId, userId);
-
-      // then
-      assertThat(notification.getConfirmedAt()).isEqualTo(confirmedAt);
     }
 
     @Test
@@ -86,7 +66,7 @@ class NotificationServiceTest {
       UUID notificationId = UUID.randomUUID();
       Notification notification = Notification.create(userId, "알림", ResourceType.INTEREST,
           UUID.randomUUID());
-      given(notificationRepository.findByIdAndUserId(notificationId, userId))
+      given(notificationRepository.findByIdAndUserIdAndConfirmedAtIsNull(notificationId, userId))
           .willReturn(Optional.of(notification));
 
       // when

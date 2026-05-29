@@ -124,8 +124,8 @@ class NotificationRepositoryTest {
   }
 
   @Nested
-  @DisplayName("findByIdAndUserId")
-  class FindByIdAndUserId {
+  @DisplayName("findByIdAndUserIdAndConfirmedAtIsNull")
+  class FindByIdAndUserIdAndConfirmedAtIsNull {
 
     @Test
     @DisplayName("존재하지 않는 알림 ID면 빈 Optional을 반환한다")
@@ -134,7 +134,8 @@ class NotificationRepositoryTest {
       UUID notExistId = UUID.randomUUID();
 
       // when
-      Optional<Notification> result = notificationRepository.findByIdAndUserId(notExistId, userId);
+      Optional<Notification> result = notificationRepository.findByIdAndUserIdAndConfirmedAtIsNull(
+          notExistId, userId);
 
       // then
       assertThat(result).isEmpty();
@@ -149,7 +150,7 @@ class NotificationRepositoryTest {
           Notification.create(otherUserId, "타인 알림", ResourceType.INTEREST, UUID.randomUUID()));
 
       // when
-      Optional<Notification> result = notificationRepository.findByIdAndUserId(
+      Optional<Notification> result = notificationRepository.findByIdAndUserIdAndConfirmedAtIsNull(
           notification.getId(), userId);
 
       // then
@@ -157,14 +158,31 @@ class NotificationRepositoryTest {
     }
 
     @Test
-    @DisplayName("id와 userId가 모두 일치하면 알림을 반환한다")
-    void id와_userId가_모두_일치하면_알림을_반환한다() {
+    @DisplayName("이미 확인된 알림이면 빈 Optional을 반환한다")
+    void 이미_확인된_알림이면_빈_Optional을_반환한다() {
+      // given
+      Notification notification = notificationRepository.save(
+          Notification.create(userId, "확인된 알림", ResourceType.INTEREST, UUID.randomUUID()));
+      notification.confirm();
+      notificationRepository.save(notification);
+
+      // when
+      Optional<Notification> result = notificationRepository.findByIdAndUserIdAndConfirmedAtIsNull(
+          notification.getId(), userId);
+
+      // then
+      assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("id와 userId가 모두 일치하고 미확인 상태면 알림을 반환한다")
+    void id와_userId가_모두_일치하고_미확인_상태면_알림을_반환한다() {
       // given
       Notification notification = notificationRepository.save(
           Notification.create(userId, "내 알림", ResourceType.INTEREST, UUID.randomUUID()));
 
       // when
-      Optional<Notification> result = notificationRepository.findByIdAndUserId(
+      Optional<Notification> result = notificationRepository.findByIdAndUserIdAndConfirmedAtIsNull(
           notification.getId(), userId);
 
       // then

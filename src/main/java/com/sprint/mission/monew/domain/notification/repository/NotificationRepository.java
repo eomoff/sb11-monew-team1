@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface NotificationRepository extends JpaRepository<Notification, UUID>,
     NotificationCustomRepository {
 
-  Optional<Notification> findByIdAndUserId(UUID id, UUID userId);
+  Optional<Notification> findByIdAndUserIdAndConfirmedAtIsNull(UUID id, UUID userId);
 
   long countByUserIdAndConfirmedAtIsNull(UUID userId);
 }

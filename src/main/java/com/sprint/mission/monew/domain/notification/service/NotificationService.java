@@ -27,7 +27,7 @@ public class NotificationService {
 
   @Transactional
   public void confirm(UUID notificationId, UUID userId) {
-    Notification notification = notificationRepository.findByIdAndUserId(notificationId, userId)
+    Notification notification = notificationRepository.findByIdAndUserIdAndConfirmedAtIsNull(notificationId, userId)
         .orElseThrow(() -> NotificationNotFoundException.withId(notificationId));
     notification.confirm();
   }
