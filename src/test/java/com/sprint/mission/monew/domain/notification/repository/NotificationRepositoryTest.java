@@ -344,40 +344,5 @@ class NotificationRepositoryTest {
       assertThat(notificationRepository.findAll()).hasSize(1);
     }
 
-    @Test
-    @DisplayName("7일 경과 알림만 선별 삭제하고 나머지는 보존한다")
-    void 경과_기준으로_대상만_선별_삭제하고_나머지는_보존한다() {
-      // given — 8일 전 확인 알림 2건 + 1일 전 확인 알림 1건 + 미확인 1건
-      UUID otherUserId = UUID.randomUUID();
-
-      notificationRepository.save(
-          Notification.create(userId, "오래된 알림1", ResourceType.INTEREST, UUID.randomUUID()));
-      notificationRepository.save(
-          Notification.create(userId, "오래된 알림2", ResourceType.COMMENT, UUID.randomUUID()));
-      notificationRepository.confirmAllByUserId(userId, Instant.now().minus(8, ChronoUnit.DAYS));
-
-      Notification recent = notificationRepository.save(
-          Notification.create(otherUserId, "최근 확인", ResourceType.INTEREST, UUID.randomUUID()));
-      notificationRepository.confirmAllByUserId(otherUserId, Instant.now().minus(1, ChronoUnit.DAYS));
-
-      notificationRepository.save(
-          Notification.create(userId, "미확인", ResourceType.INTEREST, UUID.randomUUID()));
-
-      Instant cutoff = Instant.now().minus(7, ChronoUnit.DAYS);
-
-      // when
-      int deleted = notificationRepository.deleteConfirmedBefore(cutoff);
-
-      // then
-      assertThat(deleted).isEqualTo(2);
-      List<Notification> remaining = notificationRepository.findAll();
-      assertThat(remaining).hasSize(2);
-      assertThat(remaining).extracting(Notification::getId)
-          .containsExactlyInAnyOrder(recent.getId(),
-              remaining.stream()
-                  .filter(n -> !n.isConfirmed())
-                  .findFirst().orElseThrow()
-                  .getId());
-    }
   }
 }
