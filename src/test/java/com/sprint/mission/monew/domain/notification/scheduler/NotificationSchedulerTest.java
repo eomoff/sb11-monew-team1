@@ -3,6 +3,7 @@ package com.sprint.mission.monew.domain.notification.scheduler;
 import static org.mockito.BDDMockito.then;
 
 import com.sprint.mission.monew.domain.notification.service.NotificationService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,6 +19,11 @@ class NotificationSchedulerTest {
 
   @Mock
   NotificationService notificationService;
+
+  @BeforeEach
+  void setUp() {
+    notificationScheduler = new NotificationScheduler(notificationService);
+  }
 
   @Test
   @DisplayName("만료 알림 삭제 스케줄러 실행 시 서비스에 위임한다")
