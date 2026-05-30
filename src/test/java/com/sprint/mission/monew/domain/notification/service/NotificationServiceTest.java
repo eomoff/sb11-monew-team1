@@ -13,7 +13,6 @@ import com.sprint.mission.monew.domain.notification.dto.NotificationResponse;
 import com.sprint.mission.monew.domain.notification.entity.Notification;
 import com.sprint.mission.monew.domain.notification.entity.ResourceType;
 import com.sprint.mission.monew.domain.notification.exception.NotificationNotFoundException;
-import com.sprint.mission.monew.domain.notification.mapper.NotificationMapper;
 import com.sprint.mission.monew.domain.notification.repository.NotificationRepository;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -34,7 +33,6 @@ class NotificationServiceTest {
 
   @InjectMocks NotificationService notificationService;
   @Mock NotificationRepository notificationRepository;
-  @Mock NotificationMapper notificationMapper;
 
   UUID userId;
 
@@ -160,6 +158,8 @@ class NotificationServiceTest {
       UUID commentId = UUID.randomUUID();
       UUID commentAuthorId = UUID.randomUUID();
       String likerNickname = "닉네임";
+      given(notificationRepository.save(any(Notification.class)))
+          .willAnswer(invocation -> invocation.getArgument(0));
 
       // when
       notificationService.createCommentLikeNotification(commentId, commentAuthorId, likerNickname);

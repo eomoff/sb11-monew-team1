@@ -51,7 +51,7 @@ public class NotificationService {
             ResourceType.COMMENT,
             commentId);
     Notification saved = notificationRepository.save(notification);
-    log.info("댓글 좋아요 알림 생성 완료: 댓글={}, 수신자={}", saved.getResourceId(), saved.getUserId());
+    log.info("댓글 좋아요 알림 생성 완료: 알림 ID={}, 수신자={}", saved.getId(), commentAuthorId);
   }
 
   @Transactional
