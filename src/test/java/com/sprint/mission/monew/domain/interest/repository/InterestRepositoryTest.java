@@ -387,6 +387,39 @@ class InterestRepositoryTest {
   }
 
   @Nested
+  @DisplayName("기사 제목·요약 기준 키워드 매칭 관심사 조회")
+  class FindMatchingInterests {
+
+    @Test
+    @DisplayName("기사 제목 또는 요약에 키워드가 포함된 관심사를 반환한다")
+    void 기사_제목_또는_요약에_키워드가_포함된_관심사를_반환한다() {
+      // given
+      interestRepository.save(Interest.create("인공지능", List.of("AI", "머신러닝")));
+      interestRepository.save(Interest.create("스포츠", List.of("축구", "야구")));
+
+      // when
+      List<Interest> result = interestRepository.findMatchingInterests("AI 반도체 전망", "머신러닝 동향");
+
+      // then
+      assertThat(result).hasSize(1);
+      assertThat(result.get(0).getName()).isEqualTo("인공지능");
+    }
+
+    @Test
+    @DisplayName("일치하는 키워드가 없으면 빈 목록을 반환한다")
+    void 일치하는_키워드가_없으면_빈_목록을_반환한다() {
+      // given
+      interestRepository.save(Interest.create("인공지능", List.of("AI", "머신러닝")));
+
+      // when
+      List<Interest> result = interestRepository.findMatchingInterests("오늘의 날씨", "맑고 쾌청한 하루");
+
+      // then
+      assertThat(result).isEmpty();
+    }
+  }
+
+  @Nested
   @DisplayName("관심사 삭제")
   class Delete {
 
