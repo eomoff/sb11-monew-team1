@@ -16,6 +16,7 @@ import com.sprint.mission.monew.domain.notification.service.NotificationService;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import org.mockito.ArgumentMatchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -101,12 +102,16 @@ class NotificationEventListenerTest {
       List<UUID> subscriberIds1 = List.of(UUID.randomUUID(), UUID.randomUUID());
       List<UUID> subscriberIds2 = List.of(UUID.randomUUID());
 
+      List<Object[]> batchResult =
+          List.of(
+              new Object[] {interest1.getId(), subscriberIds1.get(0)},
+              new Object[] {interest1.getId(), subscriberIds1.get(1)},
+              new Object[] {interest2.getId(), subscriberIds2.get(0)});
+
       given(interestRepository.findMatchingInterests(article.getTitle(), article.getSummary()))
           .willReturn(List.of(interest1, interest2));
-      given(subscriptionRepository.findUserIdsByInterestId(interest1.getId()))
-          .willReturn(subscriberIds1);
-      given(subscriptionRepository.findUserIdsByInterestId(interest2.getId()))
-          .willReturn(subscriberIds2);
+      given(subscriptionRepository.findUserIdsByInterestIds(ArgumentMatchers.anyList()))
+          .willReturn(batchResult);
 
       // when
       notificationEventListener.handleArticleCreated(event);
