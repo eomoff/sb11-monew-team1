@@ -7,11 +7,15 @@ import com.sprint.mission.monew.domain.interest.repository.InterestRepository;
 import com.sprint.mission.monew.domain.interest.repository.SubscriptionRepository;
 import com.sprint.mission.monew.domain.notification.service.NotificationService;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 @Slf4j
 @Component
@@ -22,7 +26,7 @@ public class NotificationEventListener {
   private final SubscriptionRepository subscriptionRepository;
   private final NotificationService notificationService;
 
-  @EventListener
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handleCommentLiked(CommentLikedEvent event) {
     notificationService.createCommentLikeNotification(
         event.commentId(), event.commentAuthorId(), event.likerNickname());
@@ -38,8 +42,17 @@ public class NotificationEventListener {
       return;
     }
 
+    List<UUID> interestIds = interests.stream().map(Interest::getId).toList();
+    Map<UUID, List<UUID>> subscribersByInterest =
+        subscriptionRepository.findUserIdsByInterestIds(interestIds).stream()
+            .collect(
+                Collectors.groupingBy(
+                    row -> (UUID) row[0],
+                    Collectors.mapping(row -> (UUID) row[1], Collectors.toList())));
+
     for (Interest interest : interests) {
-      List<UUID> subscriberIds = subscriptionRepository.findUserIdsByInterestId(interest.getId());
+      List<UUID> subscriberIds =
+          subscribersByInterest.getOrDefault(interest.getId(), List.of());
       notificationService.createArticleNotifications(
           interest.getId(), interest.getName(), subscriberIds);
     }
