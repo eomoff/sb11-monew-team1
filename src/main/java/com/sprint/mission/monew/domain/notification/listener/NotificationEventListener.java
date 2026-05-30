@@ -1,6 +1,7 @@
 package com.sprint.mission.monew.domain.notification.listener;
 
 import com.sprint.mission.monew.domain.article.event.ArticleCreatedEvent;
+import com.sprint.mission.monew.domain.comment.event.CommentLikedEvent;
 import com.sprint.mission.monew.domain.interest.entity.Interest;
 import com.sprint.mission.monew.domain.interest.repository.InterestRepository;
 import com.sprint.mission.monew.domain.interest.repository.SubscriptionRepository;
@@ -20,6 +21,15 @@ public class NotificationEventListener {
   private final InterestRepository interestRepository;
   private final SubscriptionRepository subscriptionRepository;
   private final NotificationService notificationService;
+
+  @EventListener
+  public void handleCommentLiked(CommentLikedEvent event) {
+    notificationService.createCommentLikeNotification(
+        event.commentId(),
+        event.commentAuthorId(),
+        event.likerNickname()
+    );
+  }
 
   @EventListener
   public void handleArticleCreated(ArticleCreatedEvent event) {
