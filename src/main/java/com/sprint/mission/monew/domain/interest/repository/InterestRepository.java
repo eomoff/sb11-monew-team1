@@ -14,8 +14,8 @@ public interface InterestRepository
   @Query(
       """
       SELECT DISTINCT i FROM Interest i JOIN i.keywords k
-       WHERE :title LIKE CONCAT('%', k.keyword, '%')
-          OR :summary LIKE CONCAT('%', k.keyword, '%')
+       WHERE LOWER(:title) LIKE LOWER(CONCAT('%', k.keyword, '%'))
+          OR LOWER(:summary) LIKE LOWER(CONCAT('%', k.keyword, '%'))
       """)
   List<Interest> findMatchingInterests(
       @Param("title") String title, @Param("summary") String summary);
