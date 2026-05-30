@@ -50,8 +50,8 @@ public class NotificationService {
             "[" + likerNickname + "]님이 나의 댓글을 좋아합니다.",
             ResourceType.COMMENT,
             commentId);
-    notificationRepository.save(notification);
-    log.info("댓글 좋아요 알림 생성 완료: 댓글={}, 수신자={}", commentId, commentAuthorId);
+    Notification saved = notificationRepository.save(notification);
+    log.info("댓글 좋아요 알림 생성 완료: 댓글={}, 수신자={}", saved.getResourceId(), saved.getUserId());
   }
 
   @Transactional
@@ -70,8 +70,8 @@ public class NotificationService {
                         ResourceType.INTEREST,
                         interestId))
             .toList();
-    notificationRepository.saveAll(notifications);
-    log.info("기사 등록 알림 생성 완료: 관심사={}, 수신자={}명", interestName, subscriberIds.size());
+    List<Notification> saved = notificationRepository.saveAll(notifications);
+    log.info("기사 등록 알림 생성 완료: 관심사={}, 수신자={}명", interestName, saved.size());
   }
 
   @Transactional
