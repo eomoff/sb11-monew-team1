@@ -4,10 +4,12 @@ import com.sprint.mission.monew.common.dto.CursorPageResponse;
 import com.sprint.mission.monew.domain.notification.dto.NotificationQueryCondition;
 import com.sprint.mission.monew.domain.notification.dto.NotificationResponse;
 import com.sprint.mission.monew.domain.notification.entity.Notification;
+import com.sprint.mission.monew.domain.notification.entity.ResourceType;
 import com.sprint.mission.monew.domain.notification.exception.NotificationNotFoundException;
 import com.sprint.mission.monew.domain.notification.repository.NotificationRepository;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +39,21 @@ public class NotificationService {
     Instant cutoff = Instant.now().minus(7, ChronoUnit.DAYS);
     int deleted = notificationRepository.deleteConfirmedBefore(cutoff);
     log.info("만료 알림 삭제 완료: {}건", deleted);
+  }
+
+  @Transactional
+  public void createArticleNotifications(UUID interestId, String interestName,
+      List<UUID> subscriberIds) {
+    if (subscriberIds.isEmpty()) {
+      return;
+    }
+    List<Notification> notifications = subscriberIds.stream()
+        .map(uid -> Notification.create(uid,
+            "[" + interestName + "]와 관련된 기사가 등록되었습니다.",
+            ResourceType.INTEREST, interestId))
+        .toList();
+    notificationRepository.saveAll(notifications);
+    log.info("기사 등록 알림 생성 완료: 관심사={}, 수신자={}명", interestName, subscriberIds.size());
   }
 
   @Transactional
