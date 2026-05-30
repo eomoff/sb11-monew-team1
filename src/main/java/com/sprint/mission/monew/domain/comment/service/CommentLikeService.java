@@ -64,9 +64,10 @@ public class CommentLikeService {
         userId,
         commentId);
 
-    if (comment.getUser() != null) {
+    UUID authorId = comment.getUser() != null ? comment.getUser().getId() : null;
+    if (authorId != null && !authorId.equals(userId)) {
       eventPublisher.publishEvent(
-          new CommentLikedEvent(commentId, comment.getUser().getId(), user.getNickname()));
+          new CommentLikedEvent(commentId, authorId, user.getNickname()));
     }
 
     return commentLikeMapper.toResponse(savedCommentLike);
