@@ -3,9 +3,11 @@ package com.sprint.mission.monew.domain.notification.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.never;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
@@ -145,6 +147,26 @@ class NotificationServiceTest {
       then(notificationRepository).should().deleteConfirmedBefore(argThat(cutoff ->
           !cutoff.isBefore(before.minus(7, ChronoUnit.DAYS))
               && !cutoff.isAfter(after.minus(7, ChronoUnit.DAYS))));
+    }
+  }
+
+  @Nested
+  @DisplayName("구독 관심사 기사 등록 알림 일괄 생성")
+  class CreateArticleNotifications {
+
+    @Test
+    @DisplayName("구독자 수만큼 알림이 saveAll로 저장된다")
+    void 구독자_수만큼_알림이_saveAll로_저장된다() {
+      // given
+      UUID interestId = UUID.randomUUID();
+      List<UUID> subscriberIds = List.of(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID());
+
+      // when
+      notificationService.createArticleNotifications(interestId, "인공지능", subscriberIds);
+
+      // then
+      then(notificationRepository).should().saveAll(argThat(notifications ->
+          ((List<?>) notifications).size() == subscriberIds.size()));
     }
   }
 }
