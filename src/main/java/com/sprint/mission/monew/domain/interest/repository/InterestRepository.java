@@ -8,13 +8,15 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface InterestRepository extends JpaRepository<Interest, UUID>, InterestCustomRepository {
+public interface InterestRepository
+    extends JpaRepository<Interest, UUID>, InterestCustomRepository {
 
-  @Query("""
+  @Query(
+      """
       SELECT DISTINCT i FROM Interest i JOIN i.keywords k
        WHERE :title LIKE CONCAT('%', k.keyword, '%')
           OR :summary LIKE CONCAT('%', k.keyword, '%')
       """)
-  List<Interest> findMatchingInterests(@Param("title") String title,
-      @Param("summary") String summary);
+  List<Interest> findMatchingInterests(
+      @Param("title") String title, @Param("summary") String summary);
 }

@@ -4,7 +4,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 
 import com.sprint.mission.monew.domain.article.entity.Article;
 import com.sprint.mission.monew.domain.article.entity.ArticleSource;
@@ -17,7 +16,6 @@ import com.sprint.mission.monew.domain.notification.service.NotificationService;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
-import org.mockito.BDDMockito;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -30,25 +28,26 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class NotificationEventListenerTest {
 
-  @InjectMocks
-  NotificationEventListener notificationEventListener;
+  @InjectMocks NotificationEventListener notificationEventListener;
 
-  @Mock
-  InterestRepository interestRepository;
+  @Mock InterestRepository interestRepository;
 
-  @Mock
-  SubscriptionRepository subscriptionRepository;
+  @Mock SubscriptionRepository subscriptionRepository;
 
-  @Mock
-  NotificationService notificationService;
+  @Mock NotificationService notificationService;
 
   Article article;
   ArticleCreatedEvent event;
 
   @BeforeEach
   void setUp() {
-    article = Article.create(ArticleSource.NAVER, "https://example.com/news",
-        "인공지능 관련 뉴스", Instant.now(), "AI 기술 발전 요약");
+    article =
+        Article.create(
+            ArticleSource.NAVER,
+            "https://example.com/news",
+            "인공지능 관련 뉴스",
+            Instant.now(),
+            "AI 기술 발전 요약");
     event = new ArticleCreatedEvent(article);
   }
 
@@ -69,7 +68,8 @@ class NotificationEventListenerTest {
       notificationEventListener.handleCommentLiked(event);
 
       // then
-      then(notificationService).should()
+      then(notificationService)
+          .should()
           .createCommentLikeNotification(commentId, commentAuthorId, likerNickname);
     }
   }
@@ -112,9 +112,11 @@ class NotificationEventListenerTest {
       notificationEventListener.handleArticleCreated(event);
 
       // then
-      then(notificationService).should()
+      then(notificationService)
+          .should()
           .createArticleNotifications(interest1.getId(), interest1.getName(), subscriberIds1);
-      then(notificationService).should()
+      then(notificationService)
+          .should()
           .createArticleNotifications(interest2.getId(), interest2.getName(), subscriberIds2);
     }
   }

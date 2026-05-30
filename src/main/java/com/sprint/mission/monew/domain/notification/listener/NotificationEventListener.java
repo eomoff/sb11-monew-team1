@@ -25,10 +25,7 @@ public class NotificationEventListener {
   @EventListener
   public void handleCommentLiked(CommentLikedEvent event) {
     notificationService.createCommentLikeNotification(
-        event.commentId(),
-        event.commentAuthorId(),
-        event.likerNickname()
-    );
+        event.commentId(), event.commentAuthorId(), event.likerNickname());
   }
 
   @EventListener
@@ -43,8 +40,8 @@ public class NotificationEventListener {
 
     for (Interest interest : interests) {
       List<UUID> subscriberIds = subscriptionRepository.findUserIdsByInterestId(interest.getId());
-      notificationService.createArticleNotifications(interest.getId(), interest.getName(),
-          subscriberIds);
+      notificationService.createArticleNotifications(
+          interest.getId(), interest.getName(), subscriberIds);
     }
     log.info("기사 등록 이벤트 처리 완료: 매칭 관심사={}개, 기사 제목={}", interests.size(), title);
   }

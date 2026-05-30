@@ -27,14 +27,11 @@ import org.springframework.test.context.ActiveProfiles;
 @Import({JpaConfig.class, QuerydslConfig.class})
 class SubscriptionRepositoryTest {
 
-  @Autowired
-  SubscriptionRepository subscriptionRepository;
+  @Autowired SubscriptionRepository subscriptionRepository;
 
-  @Autowired
-  InterestRepository interestRepository;
+  @Autowired InterestRepository interestRepository;
 
-  @Autowired
-  UserRepository userRepository;
+  @Autowired UserRepository userRepository;
 
   Interest interest;
   User user;
@@ -81,8 +78,8 @@ class SubscriptionRepositoryTest {
       subscriptionRepository.save(Subscription.create(interest, user));
 
       // when
-      boolean exists = subscriptionRepository.existsByInterestIdAndUserId(
-          interest.getId(), user.getId());
+      boolean exists =
+          subscriptionRepository.existsByInterestIdAndUserId(interest.getId(), user.getId());
 
       // then
       assertThat(exists).isTrue();
@@ -92,8 +89,8 @@ class SubscriptionRepositoryTest {
     @DisplayName("구독하지 않으면 false를 반환한다")
     void 구독하지_않으면_false를_반환한다() {
       // when
-      boolean exists = subscriptionRepository.existsByInterestIdAndUserId(
-          interest.getId(), user.getId());
+      boolean exists =
+          subscriptionRepository.existsByInterestIdAndUserId(interest.getId(), user.getId());
 
       // then
       assertThat(exists).isFalse();
@@ -114,8 +111,8 @@ class SubscriptionRepositoryTest {
       subscriptionRepository.delete(subscription);
 
       // then
-      assertThat(subscriptionRepository.existsByInterestIdAndUserId(
-          interest.getId(), user.getId())).isFalse();
+      assertThat(subscriptionRepository.existsByInterestIdAndUserId(interest.getId(), user.getId()))
+          .isFalse();
     }
   }
 
@@ -130,8 +127,8 @@ class SubscriptionRepositoryTest {
       subscriptionRepository.save(Subscription.create(interest, user));
 
       // when
-      Optional<Subscription> found = subscriptionRepository.findByInterestIdAndUserId(
-          interest.getId(), user.getId());
+      Optional<Subscription> found =
+          subscriptionRepository.findByInterestIdAndUserId(interest.getId(), user.getId());
 
       // then
       assertThat(found).isPresent();
@@ -143,8 +140,8 @@ class SubscriptionRepositoryTest {
     @DisplayName("구독하지 않으면 empty를 반환한다")
     void 구독하지_않으면_empty를_반환한다() {
       // when
-      Optional<Subscription> found = subscriptionRepository.findByInterestIdAndUserId(
-          interest.getId(), user.getId());
+      Optional<Subscription> found =
+          subscriptionRepository.findByInterestIdAndUserId(interest.getId(), user.getId());
 
       // then
       assertThat(found).isEmpty();

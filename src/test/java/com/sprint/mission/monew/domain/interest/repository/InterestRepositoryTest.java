@@ -33,11 +33,9 @@ import org.springframework.test.context.ActiveProfiles;
 @Import({JpaConfig.class, QuerydslConfig.class})
 class InterestRepositoryTest {
 
-  @Autowired
-  InterestRepository interestRepository;
+  @Autowired InterestRepository interestRepository;
 
-  @Autowired
-  TestEntityManager em;
+  @Autowired TestEntityManager em;
 
   @BeforeEach
   void setUp() {
@@ -76,21 +74,23 @@ class InterestRepositoryTest {
     @DisplayName("검색어 없으면 전체 관심사를 name DESC로 반환한다")
     void 검색어_없으면_전체_관심사를_name_DESC로_반환한다() {
       // given
-      interestRepository.saveAll(List.of(
-          Interest.create("Celebrity", List.of("연예인")),
-          Interest.create("AI", List.of("인공지능")),
-          Interest.create("Baseball", List.of("야구"))
-      ));
+      interestRepository.saveAll(
+          List.of(
+              Interest.create("Celebrity", List.of("연예인")),
+              Interest.create("AI", List.of("인공지능")),
+              Interest.create("Baseball", List.of("야구"))));
       UUID userId = UUID.randomUUID();
-      InterestQueryCondition condition = new InterestQueryCondition(
-          "", InterestOrderBy.NAME, SortDirection.DESC, null, null, 10);
+      InterestQueryCondition condition =
+          new InterestQueryCondition("", InterestOrderBy.NAME, SortDirection.DESC, null, null, 10);
 
       // when
-      CursorPageResponse<InterestResponse> result = interestRepository.findInterests(condition, userId);
+      CursorPageResponse<InterestResponse> result =
+          interestRepository.findInterests(condition, userId);
 
       // then
       assertThat(result.content()).hasSize(3);
-      assertThat(result.content()).extracting(InterestResponse::name)
+      assertThat(result.content())
+          .extracting(InterestResponse::name)
           .containsExactly("Celebrity", "Baseball", "AI");
       assertThat(result.hasNext()).isFalse();
     }
@@ -99,17 +99,19 @@ class InterestRepositoryTest {
     @DisplayName("검색어가 관심사 이름에 부분일치하면 필터링된다")
     void 검색어가_관심사_이름에_부분일치하면_필터링된다() {
       // given
-      interestRepository.saveAll(List.of(
-          Interest.create("Baseball", List.of("bat", "pitcher")),
-          Interest.create("Basketball", List.of("court", "dunk")),
-          Interest.create("AI", List.of("machine learning"))
-      ));
+      interestRepository.saveAll(
+          List.of(
+              Interest.create("Baseball", List.of("bat", "pitcher")),
+              Interest.create("Basketball", List.of("court", "dunk")),
+              Interest.create("AI", List.of("machine learning"))));
       UUID userId = UUID.randomUUID();
-      InterestQueryCondition condition = new InterestQueryCondition(
-          "Base", InterestOrderBy.NAME, SortDirection.DESC, null, null, 10);
+      InterestQueryCondition condition =
+          new InterestQueryCondition(
+              "Base", InterestOrderBy.NAME, SortDirection.DESC, null, null, 10);
 
       // when
-      CursorPageResponse<InterestResponse> result = interestRepository.findInterests(condition, userId);
+      CursorPageResponse<InterestResponse> result =
+          interestRepository.findInterests(condition, userId);
 
       // then
       assertThat(result.content()).hasSize(1);
@@ -120,17 +122,19 @@ class InterestRepositoryTest {
     @DisplayName("검색어가 keywords에 부분일치하면 필터링된다")
     void 검색어가_keywords에_부분일치하면_필터링된다() {
       // given
-      interestRepository.saveAll(List.of(
-          Interest.create("Soccer", List.of("football", "goal")),
-          Interest.create("Basketball", List.of("court", "dunk")),
-          Interest.create("Tennis", List.of("racket", "serve"))
-      ));
+      interestRepository.saveAll(
+          List.of(
+              Interest.create("Soccer", List.of("football", "goal")),
+              Interest.create("Basketball", List.of("court", "dunk")),
+              Interest.create("Tennis", List.of("racket", "serve"))));
       UUID userId = UUID.randomUUID();
-      InterestQueryCondition condition = new InterestQueryCondition(
-          "court", InterestOrderBy.NAME, SortDirection.DESC, null, null, 10);
+      InterestQueryCondition condition =
+          new InterestQueryCondition(
+              "court", InterestOrderBy.NAME, SortDirection.DESC, null, null, 10);
 
       // when
-      CursorPageResponse<InterestResponse> result = interestRepository.findInterests(condition, userId);
+      CursorPageResponse<InterestResponse> result =
+          interestRepository.findInterests(condition, userId);
 
       // then
       assertThat(result.content()).hasSize(1);
@@ -141,16 +145,18 @@ class InterestRepositoryTest {
     @DisplayName("이름·키워드 둘 다 불일치하면 결과가 없다")
     void 이름_키워드_둘_다_불일치하면_결과가_없다() {
       // given
-      interestRepository.saveAll(List.of(
-          Interest.create("Soccer", List.of("football")),
-          Interest.create("Tennis", List.of("racket"))
-      ));
+      interestRepository.saveAll(
+          List.of(
+              Interest.create("Soccer", List.of("football")),
+              Interest.create("Tennis", List.of("racket"))));
       UUID userId = UUID.randomUUID();
-      InterestQueryCondition condition = new InterestQueryCondition(
-          "baseball", InterestOrderBy.NAME, SortDirection.DESC, null, null, 10);
+      InterestQueryCondition condition =
+          new InterestQueryCondition(
+              "baseball", InterestOrderBy.NAME, SortDirection.DESC, null, null, 10);
 
       // when
-      CursorPageResponse<InterestResponse> result = interestRepository.findInterests(condition, userId);
+      CursorPageResponse<InterestResponse> result =
+          interestRepository.findInterests(condition, userId);
 
       // then
       assertThat(result.content()).isEmpty();
@@ -161,20 +167,22 @@ class InterestRepositoryTest {
     @DisplayName("orderBy=name, direction=ASC로 정렬된다")
     void orderBy_name_direction_ASC로_정렬된다() {
       // given
-      interestRepository.saveAll(List.of(
-          Interest.create("Celebrity", List.of("연예인")),
-          Interest.create("AI", List.of("인공지능")),
-          Interest.create("Baseball", List.of("야구"))
-      ));
+      interestRepository.saveAll(
+          List.of(
+              Interest.create("Celebrity", List.of("연예인")),
+              Interest.create("AI", List.of("인공지능")),
+              Interest.create("Baseball", List.of("야구"))));
       UUID userId = UUID.randomUUID();
-      InterestQueryCondition condition = new InterestQueryCondition(
-          "", InterestOrderBy.NAME, SortDirection.ASC, null, null, 10);
+      InterestQueryCondition condition =
+          new InterestQueryCondition("", InterestOrderBy.NAME, SortDirection.ASC, null, null, 10);
 
       // when
-      CursorPageResponse<InterestResponse> result = interestRepository.findInterests(condition, userId);
+      CursorPageResponse<InterestResponse> result =
+          interestRepository.findInterests(condition, userId);
 
       // then
-      assertThat(result.content()).extracting(InterestResponse::name)
+      assertThat(result.content())
+          .extracting(InterestResponse::name)
           .containsExactly("AI", "Baseball", "Celebrity");
     }
 
@@ -190,14 +198,17 @@ class InterestRepositoryTest {
       tennis.increaseSubscriberCount(); // 1
       interestRepository.saveAll(List.of(soccer, tennis, ai));
       UUID userId = UUID.randomUUID();
-      InterestQueryCondition condition = new InterestQueryCondition(
-          "", InterestOrderBy.SUBSCRIBER_COUNT, SortDirection.DESC, null, null, 10);
+      InterestQueryCondition condition =
+          new InterestQueryCondition(
+              "", InterestOrderBy.SUBSCRIBER_COUNT, SortDirection.DESC, null, null, 10);
 
       // when
-      CursorPageResponse<InterestResponse> result = interestRepository.findInterests(condition, userId);
+      CursorPageResponse<InterestResponse> result =
+          interestRepository.findInterests(condition, userId);
 
       // then
-      assertThat(result.content()).extracting(InterestResponse::name)
+      assertThat(result.content())
+          .extracting(InterestResponse::name)
           .containsExactly("Soccer", "Tennis", "AI");
     }
 
@@ -213,14 +224,17 @@ class InterestRepositoryTest {
       tennis.increaseSubscriberCount(); // 1
       interestRepository.saveAll(List.of(soccer, tennis, ai));
       UUID userId = UUID.randomUUID();
-      InterestQueryCondition condition = new InterestQueryCondition(
-          "", InterestOrderBy.SUBSCRIBER_COUNT, SortDirection.ASC, null, null, 10);
+      InterestQueryCondition condition =
+          new InterestQueryCondition(
+              "", InterestOrderBy.SUBSCRIBER_COUNT, SortDirection.ASC, null, null, 10);
 
       // when
-      CursorPageResponse<InterestResponse> result = interestRepository.findInterests(condition, userId);
+      CursorPageResponse<InterestResponse> result =
+          interestRepository.findInterests(condition, userId);
 
       // then
-      assertThat(result.content()).extracting(InterestResponse::name)
+      assertThat(result.content())
+          .extracting(InterestResponse::name)
           .containsExactly("AI", "Tennis", "Soccer");
     }
 
@@ -228,17 +242,18 @@ class InterestRepositoryTest {
     @DisplayName("limit 초과 시 hasNext=true + nextCursor/nextAfter 반환된다")
     void limit_초과_시_hasNext_true_nextCursor_nextAfter_반환된다() {
       // given
-      interestRepository.saveAll(List.of(
-          Interest.create("Celebrity", List.of("연예인")),
-          Interest.create("Baseball", List.of("야구")),
-          Interest.create("AI", List.of("인공지능"))
-      ));
+      interestRepository.saveAll(
+          List.of(
+              Interest.create("Celebrity", List.of("연예인")),
+              Interest.create("Baseball", List.of("야구")),
+              Interest.create("AI", List.of("인공지능"))));
       UUID userId = UUID.randomUUID();
-      InterestQueryCondition condition = new InterestQueryCondition(
-          "", InterestOrderBy.NAME, SortDirection.DESC, null, null, 2);
+      InterestQueryCondition condition =
+          new InterestQueryCondition("", InterestOrderBy.NAME, SortDirection.DESC, null, null, 2);
 
       // when
-      CursorPageResponse<InterestResponse> result = interestRepository.findInterests(condition, userId);
+      CursorPageResponse<InterestResponse> result =
+          interestRepository.findInterests(condition, userId);
 
       // then — DESC: Celebrity, Baseball, AI → 첫 페이지 마지막은 Baseball
       assertThat(result.hasNext()).isTrue();
@@ -251,22 +266,29 @@ class InterestRepositoryTest {
     @DisplayName("cursor 기반으로 다음 페이지를 조회한다")
     void cursor_기반으로_다음_페이지를_조회한다() {
       // given
-      interestRepository.saveAll(List.of(
-          Interest.create("Celebrity", List.of("연예인")),
-          Interest.create("Baseball", List.of("야구")),
-          Interest.create("AI", List.of("인공지능"))
-      ));
+      interestRepository.saveAll(
+          List.of(
+              Interest.create("Celebrity", List.of("연예인")),
+              Interest.create("Baseball", List.of("야구")),
+              Interest.create("AI", List.of("인공지능"))));
       UUID userId = UUID.randomUUID();
-      CursorPageResponse<InterestResponse> firstPage = interestRepository.findInterests(
-          new InterestQueryCondition("", InterestOrderBy.NAME, SortDirection.DESC, null, null, 2),
-          userId);
+      CursorPageResponse<InterestResponse> firstPage =
+          interestRepository.findInterests(
+              new InterestQueryCondition(
+                  "", InterestOrderBy.NAME, SortDirection.DESC, null, null, 2),
+              userId);
 
       // when
-      CursorPageResponse<InterestResponse> result = interestRepository.findInterests(
-          new InterestQueryCondition(
-              "", InterestOrderBy.NAME, SortDirection.DESC,
-              firstPage.nextCursor(), firstPage.nextAfter(), 2),
-          userId);
+      CursorPageResponse<InterestResponse> result =
+          interestRepository.findInterests(
+              new InterestQueryCondition(
+                  "",
+                  InterestOrderBy.NAME,
+                  SortDirection.DESC,
+                  firstPage.nextCursor(),
+                  firstPage.nextAfter(),
+                  2),
+              userId);
 
       // then
       assertThat(result.content()).hasSize(1);
@@ -278,22 +300,29 @@ class InterestRepositoryTest {
     @DisplayName("cursor 기반으로 NAME ASC 다음 페이지를 조회한다")
     void cursor_기반으로_NAME_ASC_다음_페이지를_조회한다() {
       // given — ASC: AI, Baseball, Celebrity
-      interestRepository.saveAll(List.of(
-          Interest.create("Celebrity", List.of("연예인")),
-          Interest.create("Baseball", List.of("야구")),
-          Interest.create("AI", List.of("인공지능"))
-      ));
+      interestRepository.saveAll(
+          List.of(
+              Interest.create("Celebrity", List.of("연예인")),
+              Interest.create("Baseball", List.of("야구")),
+              Interest.create("AI", List.of("인공지능"))));
       UUID userId = UUID.randomUUID();
-      CursorPageResponse<InterestResponse> firstPage = interestRepository.findInterests(
-          new InterestQueryCondition("", InterestOrderBy.NAME, SortDirection.ASC, null, null, 2),
-          userId);
+      CursorPageResponse<InterestResponse> firstPage =
+          interestRepository.findInterests(
+              new InterestQueryCondition(
+                  "", InterestOrderBy.NAME, SortDirection.ASC, null, null, 2),
+              userId);
 
       // when
-      CursorPageResponse<InterestResponse> result = interestRepository.findInterests(
-          new InterestQueryCondition(
-              "", InterestOrderBy.NAME, SortDirection.ASC,
-              firstPage.nextCursor(), firstPage.nextAfter(), 2),
-          userId);
+      CursorPageResponse<InterestResponse> result =
+          interestRepository.findInterests(
+              new InterestQueryCondition(
+                  "",
+                  InterestOrderBy.NAME,
+                  SortDirection.ASC,
+                  firstPage.nextCursor(),
+                  firstPage.nextAfter(),
+                  2),
+              userId);
 
       // then — 마지막 페이지: Celebrity
       assertThat(result.content()).hasSize(1);
@@ -313,17 +342,23 @@ class InterestRepositoryTest {
       tennis.increaseSubscriberCount();
       interestRepository.saveAll(List.of(soccer, tennis, ai));
       UUID userId = UUID.randomUUID();
-      CursorPageResponse<InterestResponse> firstPage = interestRepository.findInterests(
-          new InterestQueryCondition("", InterestOrderBy.SUBSCRIBER_COUNT, SortDirection.DESC,
-              null, null, 2),
-          userId);
+      CursorPageResponse<InterestResponse> firstPage =
+          interestRepository.findInterests(
+              new InterestQueryCondition(
+                  "", InterestOrderBy.SUBSCRIBER_COUNT, SortDirection.DESC, null, null, 2),
+              userId);
 
       // when
-      CursorPageResponse<InterestResponse> result = interestRepository.findInterests(
-          new InterestQueryCondition(
-              "", InterestOrderBy.SUBSCRIBER_COUNT, SortDirection.DESC,
-              firstPage.nextCursor(), firstPage.nextAfter(), 2),
-          userId);
+      CursorPageResponse<InterestResponse> result =
+          interestRepository.findInterests(
+              new InterestQueryCondition(
+                  "",
+                  InterestOrderBy.SUBSCRIBER_COUNT,
+                  SortDirection.DESC,
+                  firstPage.nextCursor(),
+                  firstPage.nextAfter(),
+                  2),
+              userId);
 
       // then — 마지막 페이지: AI
       assertThat(result.content()).hasSize(1);
@@ -343,17 +378,23 @@ class InterestRepositoryTest {
       tennis.increaseSubscriberCount();
       interestRepository.saveAll(List.of(soccer, tennis, ai));
       UUID userId = UUID.randomUUID();
-      CursorPageResponse<InterestResponse> firstPage = interestRepository.findInterests(
-          new InterestQueryCondition("", InterestOrderBy.SUBSCRIBER_COUNT, SortDirection.ASC,
-              null, null, 2),
-          userId);
+      CursorPageResponse<InterestResponse> firstPage =
+          interestRepository.findInterests(
+              new InterestQueryCondition(
+                  "", InterestOrderBy.SUBSCRIBER_COUNT, SortDirection.ASC, null, null, 2),
+              userId);
 
       // when
-      CursorPageResponse<InterestResponse> result = interestRepository.findInterests(
-          new InterestQueryCondition(
-              "", InterestOrderBy.SUBSCRIBER_COUNT, SortDirection.ASC,
-              firstPage.nextCursor(), firstPage.nextAfter(), 2),
-          userId);
+      CursorPageResponse<InterestResponse> result =
+          interestRepository.findInterests(
+              new InterestQueryCondition(
+                  "",
+                  InterestOrderBy.SUBSCRIBER_COUNT,
+                  SortDirection.ASC,
+                  firstPage.nextCursor(),
+                  firstPage.nextAfter(),
+                  2),
+              userId);
 
       // then — 마지막 페이지: Soccer
       assertThat(result.content()).hasSize(1);
@@ -372,17 +413,19 @@ class InterestRepositoryTest {
       em.persistAndFlush(Subscription.create(soccer, user));
       em.clear();
 
-      InterestQueryCondition condition = new InterestQueryCondition(
-          "", InterestOrderBy.NAME, SortDirection.DESC, null, null, 10);
+      InterestQueryCondition condition =
+          new InterestQueryCondition("", InterestOrderBy.NAME, SortDirection.DESC, null, null, 10);
 
       // when
-      CursorPageResponse<InterestResponse> result = interestRepository.findInterests(condition, user.getId());
+      CursorPageResponse<InterestResponse> result =
+          interestRepository.findInterests(condition, user.getId());
 
       // then — DESC: Tennis, Soccer
-      assertThat(result.content()).extracting(InterestResponse::name)
+      assertThat(result.content())
+          .extracting(InterestResponse::name)
           .containsExactly("Tennis", "Soccer");
       assertThat(result.content().get(0).subscribedByMe()).isFalse(); // Tennis
-      assertThat(result.content().get(1).subscribedByMe()).isTrue();  // Soccer
+      assertThat(result.content().get(1).subscribedByMe()).isTrue(); // Soccer
     }
   }
 
@@ -444,9 +487,7 @@ class InterestRepositoryTest {
       // given
       Interest interest = Interest.create("메타버스", List.of("VR", "AR"));
       Interest saved = interestRepository.save(interest);
-      List<UUID> keywordIds = saved.getKeywords().stream()
-          .map(InterestKeyword::getId)
-          .toList();
+      List<UUID> keywordIds = saved.getKeywords().stream().map(InterestKeyword::getId).toList();
 
       // when — save 시 PC에 올라온 keyword 엔티티들에 cascade REMOVE가 전파된다
       interestRepository.deleteById(saved.getId());
@@ -454,9 +495,7 @@ class InterestRepositoryTest {
       em.clear();
 
       // then — REMOVED 상태의 엔티티는 em.find()에서 null 반환
-      keywordIds.forEach(id ->
-          assertThat(em.find(InterestKeyword.class, id)).isNull()
-      );
+      keywordIds.forEach(id -> assertThat(em.find(InterestKeyword.class, id)).isNull());
     }
   }
 }

@@ -24,8 +24,8 @@ public class NotificationService {
 
   private final NotificationRepository notificationRepository;
 
-  public CursorPageResponse<NotificationResponse> findUnconfirmed(UUID userId,
-      NotificationQueryCondition condition) {
+  public CursorPageResponse<NotificationResponse> findUnconfirmed(
+      UUID userId, NotificationQueryCondition condition) {
     return notificationRepository.findUnconfirmed(userId, condition);
   }
 
@@ -42,37 +42,44 @@ public class NotificationService {
   }
 
   @Transactional
-  public void createCommentLikeNotification(UUID commentId, UUID commentAuthorId,
-      String likerNickname) {
-    Notification notification = Notification.create(
-        commentAuthorId,
-        "[" + likerNickname + "]님이 나의 댓글을 좋아합니다.",
-        ResourceType.COMMENT,
-        commentId
-    );
+  public void createCommentLikeNotification(
+      UUID commentId, UUID commentAuthorId, String likerNickname) {
+    Notification notification =
+        Notification.create(
+            commentAuthorId,
+            "[" + likerNickname + "]님이 나의 댓글을 좋아합니다.",
+            ResourceType.COMMENT,
+            commentId);
     notificationRepository.save(notification);
     log.info("댓글 좋아요 알림 생성 완료: 댓글={}, 수신자={}", commentId, commentAuthorId);
   }
 
   @Transactional
-  public void createArticleNotifications(UUID interestId, String interestName,
-      List<UUID> subscriberIds) {
+  public void createArticleNotifications(
+      UUID interestId, String interestName, List<UUID> subscriberIds) {
     if (subscriberIds.isEmpty()) {
       return;
     }
-    List<Notification> notifications = subscriberIds.stream()
-        .map(uid -> Notification.create(uid,
-            "[" + interestName + "]와 관련된 기사가 등록되었습니다.",
-            ResourceType.INTEREST, interestId))
-        .toList();
+    List<Notification> notifications =
+        subscriberIds.stream()
+            .map(
+                uid ->
+                    Notification.create(
+                        uid,
+                        "[" + interestName + "]와 관련된 기사가 등록되었습니다.",
+                        ResourceType.INTEREST,
+                        interestId))
+            .toList();
     notificationRepository.saveAll(notifications);
     log.info("기사 등록 알림 생성 완료: 관심사={}, 수신자={}명", interestName, subscriberIds.size());
   }
 
   @Transactional
   public void confirm(UUID notificationId, UUID userId) {
-    Notification notification = notificationRepository.findByIdAndUserIdAndConfirmedAtIsNull(notificationId, userId)
-        .orElseThrow(() -> NotificationNotFoundException.withId(notificationId));
+    Notification notification =
+        notificationRepository
+            .findByIdAndUserIdAndConfirmedAtIsNull(notificationId, userId)
+            .orElseThrow(() -> NotificationNotFoundException.withId(notificationId));
     notification.confirm();
   }
-} 
+}

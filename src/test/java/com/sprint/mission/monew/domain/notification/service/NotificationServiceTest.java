@@ -3,14 +3,9 @@ package com.sprint.mission.monew.domain.notification.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.BDDMockito.then;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
-import static org.mockito.Mockito.never;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 
 import com.sprint.mission.monew.common.dto.CursorPageResponse;
 import com.sprint.mission.monew.domain.notification.dto.NotificationQueryCondition;
@@ -20,6 +15,8 @@ import com.sprint.mission.monew.domain.notification.entity.ResourceType;
 import com.sprint.mission.monew.domain.notification.exception.NotificationNotFoundException;
 import com.sprint.mission.monew.domain.notification.mapper.NotificationMapper;
 import com.sprint.mission.monew.domain.notification.repository.NotificationRepository;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -35,12 +32,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class NotificationServiceTest {
 
-  @InjectMocks
-  NotificationService notificationService;
-  @Mock
-  NotificationRepository notificationRepository;
-  @Mock
-  NotificationMapper notificationMapper;
+  @InjectMocks NotificationService notificationService;
+  @Mock NotificationRepository notificationRepository;
+  @Mock NotificationMapper notificationMapper;
 
   UUID userId;
 
@@ -71,8 +65,8 @@ class NotificationServiceTest {
     void 성공_시_알림의_confirm이_호출된다() {
       // given
       UUID notificationId = UUID.randomUUID();
-      Notification notification = Notification.create(userId, "알림", ResourceType.INTEREST,
-          UUID.randomUUID());
+      Notification notification =
+          Notification.create(userId, "알림", ResourceType.INTEREST, UUID.randomUUID());
       given(notificationRepository.findByIdAndUserIdAndConfirmedAtIsNull(notificationId, userId))
           .willReturn(Optional.of(notification));
 
@@ -145,9 +139,13 @@ class NotificationServiceTest {
 
       // then
       Instant after = Instant.now();
-      then(notificationRepository).should().deleteConfirmedBefore(argThat(cutoff ->
-          !cutoff.isBefore(before.minus(7, ChronoUnit.DAYS))
-              && !cutoff.isAfter(after.minus(7, ChronoUnit.DAYS))));
+      then(notificationRepository)
+          .should()
+          .deleteConfirmedBefore(
+              argThat(
+                  cutoff ->
+                      !cutoff.isBefore(before.minus(7, ChronoUnit.DAYS))
+                          && !cutoff.isAfter(after.minus(7, ChronoUnit.DAYS))));
     }
   }
 
@@ -167,12 +165,15 @@ class NotificationServiceTest {
       notificationService.createCommentLikeNotification(commentId, commentAuthorId, likerNickname);
 
       // then
-      then(notificationRepository).should().save(argThat(n ->
-          n.getUserId().equals(commentAuthorId)
-              && n.getResourceType() == ResourceType.COMMENT
-              && n.getResourceId().equals(commentId)
-              && n.getContent().contains(likerNickname)
-      ));
+      then(notificationRepository)
+          .should()
+          .save(
+              argThat(
+                  n ->
+                      n.getUserId().equals(commentAuthorId)
+                          && n.getResourceType() == ResourceType.COMMENT
+                          && n.getResourceId().equals(commentId)
+                          && n.getContent().contains(likerNickname)));
     }
   }
 
@@ -191,8 +192,10 @@ class NotificationServiceTest {
       notificationService.createArticleNotifications(interestId, "인공지능", subscriberIds);
 
       // then
-      then(notificationRepository).should().saveAll(argThat(notifications ->
-          ((List<?>) notifications).size() == subscriberIds.size()));
+      then(notificationRepository)
+          .should()
+          .saveAll(
+              argThat(notifications -> ((List<?>) notifications).size() == subscriberIds.size()));
     }
   }
 }
