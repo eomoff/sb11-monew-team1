@@ -4,10 +4,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 import com.sprint.mission.monew.domain.article.entity.Article;
 import com.sprint.mission.monew.domain.article.entity.ArticleSource;
 import com.sprint.mission.monew.domain.article.event.ArticleCreatedEvent;
+import com.sprint.mission.monew.domain.comment.event.CommentLikedEvent;
 import com.sprint.mission.monew.domain.interest.entity.Interest;
 import com.sprint.mission.monew.domain.interest.repository.InterestRepository;
 import com.sprint.mission.monew.domain.interest.repository.SubscriptionRepository;
@@ -15,6 +17,7 @@ import com.sprint.mission.monew.domain.notification.service.NotificationService;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import org.mockito.BDDMockito;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -47,6 +50,28 @@ class NotificationEventListenerTest {
     article = Article.create(ArticleSource.NAVER, "https://example.com/news",
         "인공지능 관련 뉴스", Instant.now(), "AI 기술 발전 요약");
     event = new ArticleCreatedEvent(article);
+  }
+
+  @Nested
+  @DisplayName("CommentLikedEvent 처리")
+  class HandleCommentLiked {
+
+    @Test
+    @DisplayName("댓글 좋아요 이벤트 수신 시 알림 생성을 위임한다")
+    void 댓글_좋아요_이벤트_수신_시_알림_생성을_위임한다() {
+      // given
+      UUID commentId = UUID.randomUUID();
+      UUID commentAuthorId = UUID.randomUUID();
+      String likerNickname = "닉네임";
+      CommentLikedEvent event = new CommentLikedEvent(commentId, commentAuthorId, likerNickname);
+
+      // when
+      notificationEventListener.handleCommentLiked(event);
+
+      // then
+      then(notificationService).should()
+          .createCommentLikeNotification(commentId, commentAuthorId, likerNickname);
+    }
   }
 
   @Nested
