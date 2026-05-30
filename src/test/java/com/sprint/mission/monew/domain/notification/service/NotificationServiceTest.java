@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.BDDMockito.then;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
@@ -147,6 +148,31 @@ class NotificationServiceTest {
       then(notificationRepository).should().deleteConfirmedBefore(argThat(cutoff ->
           !cutoff.isBefore(before.minus(7, ChronoUnit.DAYS))
               && !cutoff.isAfter(after.minus(7, ChronoUnit.DAYS))));
+    }
+  }
+
+  @Nested
+  @DisplayName("댓글 좋아요 알림 생성")
+  class CreateCommentLikeNotification {
+
+    @Test
+    @DisplayName("댓글 작성자에게 좋아요 알림이 저장된다")
+    void 댓글_작성자에게_좋아요_알림이_저장된다() {
+      // given
+      UUID commentId = UUID.randomUUID();
+      UUID commentAuthorId = UUID.randomUUID();
+      String likerNickname = "닉네임";
+
+      // when
+      notificationService.createCommentLikeNotification(commentId, commentAuthorId, likerNickname);
+
+      // then
+      then(notificationRepository).should().save(argThat(n ->
+          n.getUserId().equals(commentAuthorId)
+              && n.getResourceType() == ResourceType.COMMENT
+              && n.getResourceId().equals(commentId)
+              && n.getContent().contains(likerNickname)
+      ));
     }
   }
 
