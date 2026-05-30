@@ -138,7 +138,7 @@ public class CommentLikeServiceTest {
       commentLikeService.create(commentId, userId);
 
       // then
-      then(eventPublisher).should().publishEvent(argThat(event ->
+      then(eventPublisher).should().publishEvent(argThat((Object event) ->
           event instanceof CommentLikedEvent e
               && e.commentId().equals(commentId)
               && e.commentAuthorId().equals(comment.getUser().getId())

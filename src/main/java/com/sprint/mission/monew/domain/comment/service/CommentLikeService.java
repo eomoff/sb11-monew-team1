@@ -3,6 +3,7 @@ package com.sprint.mission.monew.domain.comment.service;
 import com.sprint.mission.monew.domain.comment.dto.response.CommentLikeResponse;
 import com.sprint.mission.monew.domain.comment.entity.Comment;
 import com.sprint.mission.monew.domain.comment.entity.CommentLike;
+import com.sprint.mission.monew.domain.comment.event.CommentLikedEvent;
 import com.sprint.mission.monew.domain.comment.exception.CommentLikeAlreadyExistsException;
 import com.sprint.mission.monew.domain.comment.exception.CommentLikeNotFoundException;
 import com.sprint.mission.monew.domain.comment.exception.CommentNotFoundException;
@@ -15,6 +16,7 @@ import com.sprint.mission.monew.domain.user.repository.UserRepository;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +31,7 @@ public class CommentLikeService {
   private final UserRepository userRepository;
   private final CommentRepository commentRepository;
   private final CommentLikeMapper commentLikeMapper;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
   public CommentLikeResponse create(UUID commentId, UUID userId) {
@@ -59,6 +62,14 @@ public class CommentLikeService {
 
     log.info("[COMMENT_LIKE_CREATE_SUCCESS] 댓글 좋아요 등록 성공 - 좋아요 ID={}, 요청자 ID={}, 댓글 ID={}",
         savedCommentLike.getId(), userId, commentId);
+
+    if (comment.getUser() != null) {
+      eventPublisher.publishEvent(new CommentLikedEvent(
+          commentId,
+          comment.getUser().getId(),
+          user.getNickname()
+      ));
+    }
 
     return commentLikeMapper.toResponse(savedCommentLike);
   }
