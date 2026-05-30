@@ -37,7 +37,6 @@ public class CommentLikeService {
   public CommentLikeResponse create(UUID commentId, UUID userId) {
     log.debug("[COMMENT_LIKE_CREATE_START] 댓글 좋아요 등록 시작 - 요청자 ID={}, 댓글 ID={}", userId, commentId);
 
-    // 사용자가 이미 댓글에 좋아요를 눌렀다면 예외처리
     if (commentLikeRepository.existsByUserIdAndCommentId(userId, commentId)) {
       throw CommentLikeAlreadyExistsException.withId(userId, commentId);
     }
@@ -79,7 +78,6 @@ public class CommentLikeService {
 
     int deleted = commentLikeRepository.deleteByUserIdAndCommentId(userId, commentId);
 
-    // 좋아요가 없는 경우(deleteByUserIdAndCommentId 조건에 맞는 행이 없어 삭제된 행이 없음)
     if (deleted == 0) {
       throw CommentLikeNotFoundException.withId(userId, commentId);
     }

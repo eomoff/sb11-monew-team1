@@ -144,9 +144,6 @@ public class CommentLikeServiceTest {
     @DisplayName("댓글 좋아요 등록 성공")
     void 댓글_좋아요_등록_성공() {
       // given
-      // comment(commentId, userId), user는 BeforeEach에서 초기화
-
-      // 여기서는 자신의 댓글에 좋아요를 누른거로 테스트
       CommentLikeResponse expectedResponse =
           new CommentLikeResponse(
               commentLikeId,
@@ -190,9 +187,6 @@ public class CommentLikeServiceTest {
     @Test
     @DisplayName("댓글 좋아요 취소 실패 - 좋아요가 존재하지 않음")
     void 댓글_좋아요_취소_실패_좋아요_없음() {
-      // given
-      // commentId, userId는 BeforeEach에서 초기화
-
       // when & then
       assertThatThrownBy(() -> commentLikeService.cancel(commentId, userId))
           .isInstanceOf(CommentLikeNotFoundException.class);
