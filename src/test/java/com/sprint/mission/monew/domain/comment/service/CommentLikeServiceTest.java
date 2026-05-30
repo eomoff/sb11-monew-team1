@@ -3,12 +3,16 @@ package com.sprint.mission.monew.domain.comment.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 
 import com.sprint.mission.monew.domain.article.entity.Article;
 import com.sprint.mission.monew.domain.article.entity.ArticleSource;
+import com.sprint.mission.monew.domain.comment.event.CommentLikedEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import com.sprint.mission.monew.domain.comment.dto.response.CommentLikeResponse;
 import com.sprint.mission.monew.domain.comment.entity.Comment;
 import com.sprint.mission.monew.domain.comment.entity.CommentLike;
@@ -50,6 +54,9 @@ public class CommentLikeServiceTest {
 
   @Mock
   private CommentLikeMapper commentLikeMapper;
+
+  @Mock
+  private ApplicationEventPublisher eventPublisher;
 
   private UUID articleId;
   private UUID userId;
@@ -114,6 +121,29 @@ public class CommentLikeServiceTest {
       assertThatThrownBy(
           () -> commentLikeService.create(commentId, userId)).isInstanceOf(
           CommentLikeAlreadyExistsException.class);
+    }
+
+    @Test
+    @DisplayName("좋아요 등록 성공 시 CommentLikedEvent가 발행된다")
+    void 좋아요_등록_성공_시_CommentLikedEvent가_발행된다() {
+      // given
+      given(commentLikeRepository.existsByUserIdAndCommentId(userId, commentId)).willReturn(false);
+      given(userRepository.findById(userId)).willReturn(Optional.of(user));
+      given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
+      given(commentLikeRepository.saveAndFlush(any(CommentLike.class)))
+          .willReturn(CommentLike.create(user, comment));
+      doNothing().when(commentRepository).increaseLikeCount(commentId);
+
+      // when
+      commentLikeService.create(commentId, userId);
+
+      // then
+      then(eventPublisher).should().publishEvent(argThat(event ->
+          event instanceof CommentLikedEvent e
+              && e.commentId().equals(commentId)
+              && e.commentAuthorId().equals(comment.getUser().getId())
+              && e.likerNickname().equals(user.getNickname())
+      ));
     }
 
     @Test
