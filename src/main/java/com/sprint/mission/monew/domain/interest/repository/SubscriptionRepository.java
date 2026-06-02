@@ -21,9 +21,6 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, UUID
       "WHERE s.user.id = :userId")
   List<Subscription> findAllByUserId(@Param("userId") UUID userId, Pageable pageable);
 
-  @Query("SELECT s.user.id FROM Subscription s WHERE s.interest.id = :interestId")
-  List<UUID> findUserIdsByInterestId(@Param("interestId") UUID interestId);
-
   @Query("SELECT s.interest.id AS interestId, s.user.id AS userId "
       + "FROM Subscription s WHERE s.interest.id IN :interestIds")
   List<InterestSubscriber> findSubscribersByInterestIds(
