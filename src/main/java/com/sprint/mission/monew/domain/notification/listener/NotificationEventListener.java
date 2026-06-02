@@ -12,7 +12,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -32,7 +31,7 @@ public class NotificationEventListener {
         event.commentId(), event.commentAuthorId(), event.likerNickname());
   }
 
-  @EventListener
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handleArticleCreated(ArticleCreatedEvent event) {
     String title = event.article().getTitle();
     String summary = event.article().getSummary();
