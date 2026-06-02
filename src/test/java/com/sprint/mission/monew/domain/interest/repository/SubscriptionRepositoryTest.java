@@ -1,11 +1,13 @@
 package com.sprint.mission.monew.domain.interest.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 import com.sprint.mission.monew.common.config.JpaConfig;
 import com.sprint.mission.monew.common.config.QuerydslConfig;
 import com.sprint.mission.monew.domain.interest.entity.Interest;
 import com.sprint.mission.monew.domain.interest.entity.Subscription;
+import com.sprint.mission.monew.domain.interest.repository.dto.InterestSubscriber;
 import com.sprint.mission.monew.domain.user.entity.User;
 import com.sprint.mission.monew.domain.user.repository.UserRepository;
 import java.util.List;
@@ -219,6 +221,33 @@ class SubscriptionRepositoryTest {
 
       // then
       assertThat(userIds).isEmpty();
+    }
+  }
+
+  @Nested
+  @DisplayName("관심사 목록 구독자 일괄 조회")
+  class FindSubscribersByInterestIds {
+
+    @Test
+    @DisplayName("조회 대상 관심사의 (관심사ID, 구독자ID) 쌍만 반환한다")
+    void 조회_대상_관심사의_구독자_쌍만_반환한다() {
+      // given — interest는 조회 대상(구독자 2명), otherInterest는 제외 대상
+      Interest otherInterest = interestRepository.save(Interest.create("스포츠", List.of("축구")));
+      User user2 = userRepository.save(User.create("user2@test.com", "유저2", "password123!"));
+      subscriptionRepository.save(Subscription.create(interest, user));
+      subscriptionRepository.save(Subscription.create(interest, user2));
+      subscriptionRepository.save(Subscription.create(otherInterest, user)); // 제외돼야 함
+
+      // when
+      List<InterestSubscriber> result =
+          subscriptionRepository.findSubscribersByInterestIds(List.of(interest.getId()));
+
+      // then
+      assertThat(result)
+          .extracting(InterestSubscriber::getInterestId, InterestSubscriber::getUserId)
+          .containsExactlyInAnyOrder(
+              tuple(interest.getId(), user.getId()),
+              tuple(interest.getId(), user2.getId()));
     }
   }
 }

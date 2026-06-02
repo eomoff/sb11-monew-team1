@@ -5,6 +5,7 @@ import com.sprint.mission.monew.domain.comment.event.CommentLikedEvent;
 import com.sprint.mission.monew.domain.interest.entity.Interest;
 import com.sprint.mission.monew.domain.interest.repository.InterestRepository;
 import com.sprint.mission.monew.domain.interest.repository.SubscriptionRepository;
+import com.sprint.mission.monew.domain.interest.repository.dto.InterestSubscriber;
 import com.sprint.mission.monew.domain.notification.service.NotificationService;
 import java.util.List;
 import java.util.Map;
@@ -43,11 +44,11 @@ public class NotificationEventListener {
 
     List<UUID> interestIds = interests.stream().map(Interest::getId).toList();
     Map<UUID, List<UUID>> subscribersByInterest =
-        subscriptionRepository.findUserIdsByInterestIds(interestIds).stream()
+        subscriptionRepository.findSubscribersByInterestIds(interestIds).stream()
             .collect(
                 Collectors.groupingBy(
-                    row -> (UUID) row[0],
-                    Collectors.mapping(row -> (UUID) row[1], Collectors.toList())));
+                    InterestSubscriber::getInterestId,
+                    Collectors.mapping(InterestSubscriber::getUserId, Collectors.toList())));
 
     for (Interest interest : interests) {
       List<UUID> subscriberIds =
