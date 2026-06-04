@@ -210,13 +210,18 @@ NotificationServiceTest {
           .willAnswer(invocation -> invocation.getArgument(0));
 
       // when
-      notificationService.createArticleNotifications(interestId, "인공지능", subscriberIds);
+      notificationService.createArticleNotifications(interestId, "인공지능", 5, subscriberIds);
 
-      // then
+      // then — 구독자 수만큼 저장되고 메시지에 기사 건수가 포함된다
       then(notificationRepository)
           .should()
           .saveAll(
-              argThat(notifications -> ((List<?>) notifications).size() == subscriberIds.size()));
+              argThat(
+                  notifications ->
+                      ((List<?>) notifications).size() == subscriberIds.size()
+                          && ((List<com.sprint.mission.monew.domain.notification.entity.Notification>) notifications)
+                              .stream()
+                              .allMatch(n -> n.getContent().contains("5건"))));
       then(notificationMetrics).should().countArticleNotifications(subscriberIds.size());
     }
   }

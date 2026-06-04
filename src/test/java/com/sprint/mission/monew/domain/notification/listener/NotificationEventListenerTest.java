@@ -3,8 +3,6 @@ package com.sprint.mission.monew.domain.notification.listener;
 import static org.mockito.BDDMockito.then;
 
 import com.sprint.mission.monew.domain.comment.event.CommentLikedNotificationEvent;
-import com.sprint.mission.monew.domain.interest.repository.InterestRepository;
-import com.sprint.mission.monew.domain.interest.repository.SubscriptionRepository;
 import com.sprint.mission.monew.domain.notification.entity.ResourceType;
 import com.sprint.mission.monew.domain.notification.service.NotificationService;
 import java.util.UUID;
@@ -20,10 +18,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class NotificationEventListenerTest {
 
   @InjectMocks NotificationEventListener notificationEventListener;
-
-  @Mock InterestRepository interestRepository;
-
-  @Mock SubscriptionRepository subscriptionRepository;
 
   @Mock NotificationService notificationService;
 

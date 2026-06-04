@@ -19,14 +19,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 class ArticleUpsertServiceTest {
 
   @InjectMocks ArticleUpsertService articleUpsertService;
   @Mock ArticleRepository articleRepository;
-  @Mock ApplicationEventPublisher eventPublisher;
   @Mock NewsCollectMetrics newsCollectMetrics;
 
   @Nested
@@ -48,7 +46,6 @@ class ArticleUpsertServiceTest {
 
       // then
       verify(articleRepository).save(any(Article.class));
-      verify(eventPublisher, never()).publishEvent(any(Object.class));
       verify(newsCollectMetrics).countCreated();
     }
 
@@ -67,7 +64,6 @@ class ArticleUpsertServiceTest {
 
       // then
       verify(articleRepository).save(existing);
-      verify(eventPublisher, never()).publishEvent(any());
       verify(newsCollectMetrics).countDuplicated();
       assertThat(existing.getTitle()).isEqualTo("수정된 제목");
       assertThat(existing.getSummary()).isEqualTo("수정된 요약");
@@ -89,7 +85,6 @@ class ArticleUpsertServiceTest {
 
       // then
       verify(articleRepository, never()).save(any());
-      verify(eventPublisher, never()).publishEvent(any());
       assertThat(deleted.getTitle()).isEqualTo("원래 제목");
     }
 
