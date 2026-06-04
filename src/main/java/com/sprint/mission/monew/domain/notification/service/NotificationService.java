@@ -44,20 +44,6 @@ public class NotificationService {
   }
 
   @Transactional
-  public void createCommentLikeNotification(
-      UUID commentId, UUID commentAuthorId, String likerNickname) {
-    Notification notification =
-        Notification.create(
-            commentAuthorId,
-            "[" + likerNickname + "]님이 나의 댓글을 좋아합니다.",
-            ResourceType.COMMENT,
-            commentId);
-    Notification saved = notificationRepository.save(notification);
-    notificationMetrics.countCommentLikeNotification();
-    log.info("댓글 좋아요 알림 생성 완료: 알림 ID={}, 수신자={}", saved.getId(), commentAuthorId);
-  }
-
-  @Transactional
   public void createArticleNotifications(
       UUID interestId, String interestName, List<UUID> subscriberIds) {
     if (subscriberIds.isEmpty()) {
@@ -80,6 +66,10 @@ public class NotificationService {
 
   @Transactional
   public void create(UUID recipientId, String message, ResourceType resourceType, UUID resourceId) {
+    Notification notification = Notification.create(recipientId, message, resourceType, resourceId);
+    Notification saved = notificationRepository.save(notification);
+    notificationMetrics.countCommentLikeNotification();
+    log.info("알림 생성 완료: 알림 ID={}, 수신자={}", saved.getId(), recipientId);
   }
 
   @Transactional

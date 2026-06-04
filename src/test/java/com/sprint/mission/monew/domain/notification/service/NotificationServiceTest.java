@@ -166,21 +166,21 @@ NotificationServiceTest {
   }
 
   @Nested
-  @DisplayName("댓글 좋아요 알림 생성")
-  class CreateCommentLikeNotification {
+  @DisplayName("알림 생성")
+  class Create {
 
     @Test
-    @DisplayName("댓글 작성자에게 좋아요 알림이 저장된다")
-    void 댓글_작성자에게_좋아요_알림이_저장된다() {
+    @DisplayName("수신자에게 전달된 메시지 그대로 알림이 저장된다")
+    void 수신자에게_전달된_메시지_그대로_알림이_저장된다() {
       // given
-      UUID commentId = UUID.randomUUID();
-      UUID commentAuthorId = UUID.randomUUID();
-      String likerNickname = "닉네임";
+      UUID recipientId = UUID.randomUUID();
+      String message = "[닉네임]님이 나의 댓글을 좋아합니다.";
+      UUID resourceId = UUID.randomUUID();
       given(notificationRepository.save(any(Notification.class)))
           .willAnswer(invocation -> invocation.getArgument(0));
 
       // when
-      notificationService.createCommentLikeNotification(commentId, commentAuthorId, likerNickname);
+      notificationService.create(recipientId, message, ResourceType.COMMENT, resourceId);
 
       // then
       then(notificationRepository)
@@ -188,10 +188,10 @@ NotificationServiceTest {
           .save(
               argThat(
                   n ->
-                      n.getUserId().equals(commentAuthorId)
+                      n.getUserId().equals(recipientId)
                           && n.getResourceType() == ResourceType.COMMENT
-                          && n.getResourceId().equals(commentId)
-                          && n.getContent().contains(likerNickname)));
+                          && n.getResourceId().equals(resourceId)
+                          && n.getContent().equals(message)));
       then(notificationMetrics).should().countCommentLikeNotification();
     }
   }
