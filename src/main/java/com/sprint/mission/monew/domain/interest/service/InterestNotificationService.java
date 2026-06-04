@@ -63,8 +63,8 @@ public class InterestNotificationService {
       List<UUID> subscriberIds =
           subscribersByInterest.getOrDefault(interest.getId(), List.of());
       if (!subscriberIds.isEmpty()) {
-        notificationService.createArticleNotifications(
-            interest.getId(), interest.getName(), count, subscriberIds);
+        String message = "[" + interest.getName() + "]와 관련된 기사가 " + count + "건 등록되었습니다.";
+        notificationService.createArticleNotifications(interest.getId(), message, subscriberIds);
       }
     }
 

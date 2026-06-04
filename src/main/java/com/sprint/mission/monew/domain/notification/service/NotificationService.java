@@ -44,19 +44,17 @@ public class NotificationService {
   }
 
   @Transactional
-  public void createArticleNotifications(
-      UUID interestId, String interestName, int articleCount, List<UUID> subscriberIds) {
+  public void createArticleNotifications(UUID interestId, String message, List<UUID> subscriberIds) {
     if (subscriberIds.isEmpty()) {
       return;
     }
-    String message = "[" + interestName + "]와 관련된 기사가 " + articleCount + "건 등록되었습니다.";
     List<Notification> notifications =
         subscriberIds.stream()
             .map(uid -> Notification.create(uid, message, ResourceType.INTEREST, interestId))
             .toList();
     List<Notification> saved = notificationRepository.saveAll(notifications);
     notificationMetrics.countArticleNotifications(saved.size());
-    log.info("기사 등록 알림 생성 완료: 관심사={}, 기사={}건, 수신자={}명", interestName, articleCount, saved.size());
+    log.info("기사 등록 알림 생성 완료: 관심사 ID={}, 수신자={}명", interestId, saved.size());
   }
 
   @Transactional
