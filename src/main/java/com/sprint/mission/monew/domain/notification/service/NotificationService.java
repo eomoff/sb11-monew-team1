@@ -33,6 +33,7 @@ public class NotificationService {
   @Transactional
   public void confirmAll(UUID userId) {
     notificationRepository.confirmAllByUserId(userId, Instant.now());
+    log.info("알림 전체 확인 완료 | userId={}", userId);
   }
 
   @Transactional
@@ -40,7 +41,7 @@ public class NotificationService {
     Instant cutoff = Instant.now().minus(7, ChronoUnit.DAYS);
     int deleted = notificationRepository.deleteConfirmedBefore(cutoff);
     notificationMetrics.countDeleted(deleted);
-    log.info("만료 알림 삭제 완료: {}건", deleted);
+    log.info("만료 알림 삭제 완료 | count={}", deleted);
   }
 
   @Transactional
@@ -54,7 +55,7 @@ public class NotificationService {
             .toList();
     List<Notification> saved = notificationRepository.saveAll(notifications);
     notificationMetrics.countArticleNotifications(saved.size());
-    log.info("기사 등록 알림 생성 완료: 관심사 ID={}, 수신자={}명", interestId, saved.size());
+    log.info("기사 등록 알림 생성 완료 | interestId={}, recipientCount={}", interestId, saved.size());
   }
 
   @Transactional
@@ -62,7 +63,7 @@ public class NotificationService {
     Notification notification = Notification.create(recipientId, message, resourceType, resourceId);
     Notification saved = notificationRepository.save(notification);
     notificationMetrics.countCommentLikeNotification();
-    log.info("알림 생성 완료: 알림 ID={}, 수신자={}", saved.getId(), recipientId);
+    log.info("알림 생성 완료 | notificationId={}, recipientId={}", saved.getId(), recipientId);
   }
 
   @Transactional
@@ -72,5 +73,6 @@ public class NotificationService {
             .findByIdAndUserIdAndConfirmedAtIsNull(notificationId, userId)
             .orElseThrow(() -> NotificationNotFoundException.withId(notificationId));
     notification.confirm();
+    log.info("알림 확인 완료 | notificationId={}, userId={}", notificationId, userId);
   }
 }

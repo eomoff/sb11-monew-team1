@@ -7,7 +7,6 @@ import com.sprint.mission.monew.domain.user.dto.UserResponse;
 import com.sprint.mission.monew.domain.user.dto.UserUpdateRequest;
 import com.sprint.mission.monew.domain.user.entity.EmailVerification;
 import com.sprint.mission.monew.domain.user.entity.User;
-import com.sprint.mission.monew.domain.user.event.EmailVerificationCreatedEvent;
 import com.sprint.mission.monew.domain.user.exception.InvalidVerificationTokenException;
 import com.sprint.mission.monew.domain.user.exception.UserAccessDeniedException;
 import com.sprint.mission.monew.domain.user.exception.UserEmailDuplicateException;
@@ -22,10 +21,11 @@ import java.time.Instant;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Slf4j
 @Transactional(readOnly = true)
@@ -37,7 +37,7 @@ public class UserService {
   private final UserMapper userMapper;
   private final PasswordEncoder passwordEncoder;
   private final EmailVerificationRepository emailVerificationRepository;
-  private final ApplicationEventPublisher eventPublisher;
+  private final EmailQueue emailQueue;
   private final UserMetrics userMetrics;
 
   @Transactional
@@ -55,11 +55,23 @@ public class UserService {
 
     EmailVerification verification = EmailVerification.create(saved.getId());
     EmailVerification savedVerification = emailVerificationRepository.save(verification);
-    eventPublisher.publishEvent(
-        new EmailVerificationCreatedEvent(saved.getEmail(), savedVerification.getToken()));
+
+    String email = saved.getEmail();
+    String token = savedVerification.getToken();
+
+    if (TransactionSynchronizationManager.isSynchronizationActive()) {
+      TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+        @Override
+        public void afterCommit() {
+          emailQueue.enqueue(email, token);
+        }
+      });
+    } else {
+      emailQueue.enqueue(email, token);
+    }
 
     userMetrics.countRegistered();
-    log.info("회원가입 완료: id={}", saved.getId());
+    log.info("회원가입 완료 | userId={}", saved.getId());
     return userMapper.toResponse(saved);
   }
 
@@ -75,7 +87,7 @@ public class UserService {
     if (!passwordEncoder.matches(request.password(), user.getPassword())) {
       throw UserLoginFailedException.withPassword();
     }
-    log.info("로그인 완료: id={}", user.getId());
+    log.info("로그인 완료 | userId={}", user.getId());
     return userMapper.toResponse(user);
   }
 
@@ -91,7 +103,7 @@ public class UserService {
 
     user.verifyEmail();
     emailVerificationRepository.delete(verification);
-    log.info("이메일 인증 완료: userId={}", user.getId());
+    log.info("이메일 인증 완료 | userId={}", user.getId());
   }
 
   @Transactional
@@ -103,7 +115,7 @@ public class UserService {
     User user = userRepository.findByIdAndDeletedAtIsNull(userId)
         .orElseThrow(() -> UserNotFoundException.withId(userId));
     user.updateNickname(request.nickname());
-    log.info("닉네임 수정 완료: id={}", userId);
+    log.info("닉네임 수정 완료 | userId={}", userId);
     return userMapper.toResponse(user);
   }
 
@@ -116,15 +128,15 @@ public class UserService {
     User user = userRepository.findByIdAndDeletedAtIsNull(userId)
         .orElseThrow(() -> UserNotFoundException.withId(userId));
     user.softDelete();
-    log.info("논리 삭제 완료: id={}", userId);
+    log.info("사용자 논리 삭제 완료 | userId={}", userId);
   }
 
   @Transactional
   public int deleteExpiredUsers(Instant threshold) {
-    log.info("물리 삭제 실행: threshold={}", threshold);
+    log.info("사용자 물리 삭제 시작 | threshold={}", threshold);
     int deleted = userRepository.deleteAllByDeletedAtBefore(threshold);
     userMetrics.countDeleted(deleted);
-    log.info("물리 삭제 완료: {}건 삭제", deleted);
+    log.info("사용자 물리 삭제 완료 | count={}", deleted);
     return deleted;
   }
 
@@ -134,7 +146,7 @@ public class UserService {
     User user = userRepository.findByIdAndDeletedAtIsNotNull(userId)
         .orElseThrow(() -> UserNotFoundException.withId(userId));
     userRepository.delete(user);
-    log.info("물리 삭제 완료: id={}", userId);
+    log.info("사용자 물리 삭제 완료 | userId={}", userId);
   }
 
   @Transactional
@@ -146,6 +158,6 @@ public class UserService {
       throw UserInvalidPasswordException.withoutDetail();
     }
     user.updatePassword(passwordEncoder.encode(request.newPassword()));
-    log.info("비밀번호 변경 완료: id={}", requestUserId);
+    log.info("비밀번호 변경 완료 | userId={}", requestUserId);
   }
 }
