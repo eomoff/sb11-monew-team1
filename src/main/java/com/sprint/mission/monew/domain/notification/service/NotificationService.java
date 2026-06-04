@@ -62,7 +62,11 @@ public class NotificationService {
   public void create(UUID recipientId, String message, ResourceType resourceType, UUID resourceId) {
     Notification notification = Notification.create(recipientId, message, resourceType, resourceId);
     Notification saved = notificationRepository.save(notification);
-    notificationMetrics.countCommentLikeNotification();
+    if (resourceType == ResourceType.COMMENT) {
+      notificationMetrics.countCommentLikeNotification();
+    } else {
+      notificationMetrics.countArticleNotifications(1);
+    }
     log.info("알림 생성 완료 | notificationId={}, recipientId={}", saved.getId(), recipientId);
   }
 
