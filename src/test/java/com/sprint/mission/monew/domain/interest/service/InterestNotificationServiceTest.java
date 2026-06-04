@@ -111,6 +111,23 @@ class InterestNotificationServiceTest {
     then(notificationService).shouldHaveNoInteractions();
   }
 
+  @Test
+  @DisplayName("매칭되는 관심사가 없으면 구독자 조회 없이 알림을 생성하지 않는다")
+  void 매칭되는_관심사가_없으면_알림을_생성하지_않는다() {
+    // given
+    Instant since = Instant.now();
+    Article a1 = article("랜덤 기사", "내용");
+    given(articleRepository.findByCreatedAtAfterAndDeletedAtIsNull(since)).willReturn(List.of(a1));
+    given(interestRepository.findMatchingInterests("랜덤 기사", "내용")).willReturn(List.of());
+
+    // when
+    interestNotificationService.notifyNewArticles(since);
+
+    // then
+    then(subscriptionRepository).shouldHaveNoInteractions();
+    then(notificationService).shouldHaveNoInteractions();
+  }
+
   private Article article(String title, String summary) {
     Article article = mock(Article.class);
     given(article.getTitle()).willReturn(title);
