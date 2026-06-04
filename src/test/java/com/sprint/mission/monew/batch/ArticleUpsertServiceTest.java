@@ -9,7 +9,6 @@ import static org.mockito.Mockito.verify;
 
 import com.sprint.mission.monew.domain.article.entity.Article;
 import com.sprint.mission.monew.domain.article.entity.ArticleSource;
-import com.sprint.mission.monew.domain.article.event.ArticleCreatedEvent;
 import com.sprint.mission.monew.domain.article.repository.ArticleRepository;
 import java.time.Instant;
 import java.util.Optional;
@@ -35,8 +34,8 @@ class ArticleUpsertServiceTest {
   class Upsert {
 
     @Test
-    @DisplayName("신규 기사는 저장하고 ArticleCreatedEvent를 발행한다")
-    void 신규_기사는_저장하고_이벤트를_발행한다() {
+    @DisplayName("신규 기사는 저장하고 이벤트를 발행하지 않는다")
+    void 신규_기사는_저장하고_이벤트를_발행하지_않는다() {
       // given
       Article saved = Article.create(
           ArticleSource.NAVER, "https://example.com/1", "제목", Instant.now(), "요약");
@@ -49,7 +48,7 @@ class ArticleUpsertServiceTest {
 
       // then
       verify(articleRepository).save(any(Article.class));
-      verify(eventPublisher).publishEvent(any(ArticleCreatedEvent.class));
+      verify(eventPublisher, never()).publishEvent(any(Object.class));
       verify(newsCollectMetrics).countCreated();
     }
 
