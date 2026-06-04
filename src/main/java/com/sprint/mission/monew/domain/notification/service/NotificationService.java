@@ -79,6 +79,10 @@ public class NotificationService {
   }
 
   @Transactional
+  public void create(UUID recipientId, String message, ResourceType resourceType, UUID resourceId) {
+  }
+
+  @Transactional
   public void confirm(UUID notificationId, UUID userId) {
     Notification notification =
         notificationRepository

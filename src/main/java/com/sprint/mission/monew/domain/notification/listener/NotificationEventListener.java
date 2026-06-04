@@ -2,6 +2,7 @@ package com.sprint.mission.monew.domain.notification.listener;
 
 import com.sprint.mission.monew.domain.article.event.ArticleCreatedEvent;
 import com.sprint.mission.monew.domain.comment.event.CommentLikedEvent;
+import com.sprint.mission.monew.domain.comment.event.CommentLikedNotificationEvent;
 import com.sprint.mission.monew.domain.interest.entity.Interest;
 import com.sprint.mission.monew.domain.interest.repository.InterestRepository;
 import com.sprint.mission.monew.domain.interest.repository.SubscriptionRepository;
@@ -30,6 +31,10 @@ public class NotificationEventListener {
   public void handleCommentLiked(CommentLikedEvent event) {
     notificationService.createCommentLikeNotification(
         event.commentId(), event.commentAuthorId(), event.likerNickname());
+  }
+
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+  public void handleCommentLiked(CommentLikedNotificationEvent event) {
   }
 
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)

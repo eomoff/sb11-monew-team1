@@ -8,7 +8,8 @@ import static org.mockito.Mockito.never;
 import com.sprint.mission.monew.domain.article.entity.Article;
 import com.sprint.mission.monew.domain.article.entity.ArticleSource;
 import com.sprint.mission.monew.domain.article.event.ArticleCreatedEvent;
-import com.sprint.mission.monew.domain.comment.event.CommentLikedEvent;
+import com.sprint.mission.monew.domain.comment.event.CommentLikedNotificationEvent;
+import com.sprint.mission.monew.domain.notification.entity.ResourceType;
 import com.sprint.mission.monew.domain.interest.entity.Interest;
 import com.sprint.mission.monew.domain.interest.repository.InterestRepository;
 import com.sprint.mission.monew.domain.interest.repository.SubscriptionRepository;
@@ -67,17 +68,18 @@ class NotificationEventListenerTest {
   }
 
   @Nested
-  @DisplayName("CommentLikedEvent 처리")
-  class HandleCommentLiked {
+  @DisplayName("CommentLikedNotificationEvent 처리")
+  class HandleCommentLikedNotification {
 
     @Test
-    @DisplayName("댓글 좋아요 이벤트 수신 시 알림 생성을 위임한다")
-    void 댓글_좋아요_이벤트_수신_시_알림_생성을_위임한다() {
+    @DisplayName("수신자와 메시지가 포함된 이벤트를 받아 저장만 위임한다")
+    void 수신자와_메시지가_포함된_이벤트를_받아_저장만_위임한다() {
       // given
-      UUID commentId = UUID.randomUUID();
-      UUID commentAuthorId = UUID.randomUUID();
-      String likerNickname = "닉네임";
-      CommentLikedEvent event = new CommentLikedEvent(commentId, commentAuthorId, likerNickname);
+      UUID recipientId = UUID.randomUUID();
+      String message = "[홍길동]님이 나의 댓글을 좋아합니다.";
+      UUID resourceId = UUID.randomUUID();
+      CommentLikedNotificationEvent event =
+          new CommentLikedNotificationEvent(recipientId, message, ResourceType.COMMENT, resourceId);
 
       // when
       notificationEventListener.handleCommentLiked(event);
@@ -85,7 +87,7 @@ class NotificationEventListenerTest {
       // then
       then(notificationService)
           .should()
-          .createCommentLikeNotification(commentId, commentAuthorId, likerNickname);
+          .create(recipientId, message, ResourceType.COMMENT, resourceId);
     }
   }
 
