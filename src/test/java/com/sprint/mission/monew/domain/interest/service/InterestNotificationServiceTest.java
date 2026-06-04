@@ -76,6 +76,41 @@ class InterestNotificationServiceTest {
             interestBId, "[경제]와 관련된 기사가 1건 등록되었습니다.", List.of(u3));
   }
 
+  @Test
+  @DisplayName("신규 기사가 없으면 아무 알림도 생성하지 않는다")
+  void 신규_기사가_없으면_아무_알림도_생성하지_않는다() {
+    // given
+    Instant since = Instant.now();
+    given(articleRepository.findByCreatedAtAfterAndDeletedAtIsNull(since)).willReturn(List.of());
+
+    // when
+    interestNotificationService.notifyNewArticles(since);
+
+    // then
+    then(notificationService).shouldHaveNoInteractions();
+  }
+
+  @Test
+  @DisplayName("매칭됐지만 구독자가 없는 관심사는 알림을 생성하지 않는다")
+  void 구독자가_없는_관심사는_알림을_생성하지_않는다() {
+    // given
+    Instant since = Instant.now();
+    Article a1 = article("AI 기사", "요약");
+    given(articleRepository.findByCreatedAtAfterAndDeletedAtIsNull(since)).willReturn(List.of(a1));
+
+    UUID interestAId = UUID.randomUUID();
+    Interest interestA = mock(Interest.class);
+    given(interestA.getId()).willReturn(interestAId);
+    given(interestRepository.findMatchingInterests("AI 기사", "요약")).willReturn(List.of(interestA));
+    given(subscriptionRepository.findSubscribersByInterestIds(anyList())).willReturn(List.of());
+
+    // when
+    interestNotificationService.notifyNewArticles(since);
+
+    // then
+    then(notificationService).shouldHaveNoInteractions();
+  }
+
   private Article article(String title, String summary) {
     Article article = mock(Article.class);
     given(article.getTitle()).willReturn(title);
