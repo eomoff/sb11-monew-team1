@@ -94,6 +94,7 @@ class SubscriptionServiceTest {
       given(interestRepository.existsById(interestId)).willReturn(true);
       given(subscriptionRepository.deleteByInterestIdAndUserId(interestId, userId))
           .willReturn(1);
+      given(interestRepository.decreaseSubscriberCount(interestId)).willReturn(1);
 
       // when
       subscriptionService.unsubscribe(interestId, userId);

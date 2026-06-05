@@ -21,7 +21,7 @@ public interface ArticleRepository extends JpaRepository<Article, UUID>, Article
   @Modifying(clearAutomatically = true, flushAutomatically = true)
   @Query("""
       update Article a set a.viewCount = a.viewCount + 1
-            where a.id = :articleId
+            where a.id = :articleId and a.deletedAt is null
       """)
   void increaseViewCount(UUID articleId);
 }

@@ -33,5 +33,5 @@ public interface InterestRepository
       update Interest i set i.subscriberCount = i.subscriberCount - 1
             where i.id = :interestId and i.subscriberCount > 0
       """)
-  void decreaseSubscriberCount(UUID interestId);
+  int decreaseSubscriberCount(UUID interestId);
 }
