@@ -79,7 +79,6 @@ public class UserService {
       emailQueue.enqueueVerification(email, token);
     }
 
-    userMetrics.countRegistered();
     log.info("회원가입 완료 | userId={}", saved.getId());
     return userMapper.toResponse(saved);
   }

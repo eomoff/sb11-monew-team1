@@ -129,7 +129,6 @@ class UserServiceTest {
       then(emailVerificationRepository).should().save(any(EmailVerification.class));
       then(emailQueue).should().enqueueVerification(anyString(), anyString());
       then(userMapper).should().toResponse(user);
-      then(userMetrics).should().countRegistered();
       assertThat(result).isNotNull();
       assertThat(result.email()).isEqualTo("test@test.com");
       assertThat(result.nickname()).isEqualTo("테스터");
