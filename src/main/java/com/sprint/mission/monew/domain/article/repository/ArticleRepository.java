@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 
 public interface ArticleRepository extends JpaRepository<Article, UUID>, ArticleCustomRepository {
 
@@ -15,4 +17,11 @@ public interface ArticleRepository extends JpaRepository<Article, UUID>, Article
   List<Article> findBySourceUrlIn(List<String> sourceUrls);
 
   List<Article> findByCreatedAtAfterAndDeletedAtIsNull(Instant since);
+
+  @Modifying(clearAutomatically = true, flushAutomatically = true)
+  @Query("""
+      update Article a set a.viewCount = a.viewCount + 1
+            where a.id = :articleId
+      """)
+  void increaseViewCount(UUID articleId);
 }
