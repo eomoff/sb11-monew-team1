@@ -62,9 +62,6 @@ public class CommentServiceTest {
   @Mock
   private CommentMapper commentMapper;
 
-  @Mock
-  private CommentMetrics commentMetrics;
-
   private UUID articleId;
   private UUID userId;
   private UUID commentId;
@@ -156,7 +153,6 @@ public class CommentServiceTest {
       verify(userRepository).findById(userId);
       verify(commentRepository).save(any(Comment.class));
       verify(commentMapper).toResponse(any(Comment.class), eq(false));
-      verify(commentMetrics).countCreated();
     }
   }
 
