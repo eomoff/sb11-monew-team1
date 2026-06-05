@@ -69,6 +69,7 @@ public class NewsCollectService {
       newsCollectMetrics.countCollected(ArticleSource.NAVER, candidates.size());
       log.info("Naver 뉴스 수집 완료 | count={}", candidates.size());
     } catch (Exception e) {
+      newsCollectMetrics.countFailed(ArticleSource.NAVER);
       log.error("Naver 뉴스 수집 실패", e);
     }
   }
@@ -89,6 +90,7 @@ public class NewsCollectService {
       newsCollectMetrics.countCollected(source, candidates.size());
       log.info("{} RSS 수집 완료 | count={}", source, candidates.size());
     } catch (Exception e) {
+      newsCollectMetrics.countFailed(source);
       log.error("{} RSS 수집 실패", source, e);
     }
   }

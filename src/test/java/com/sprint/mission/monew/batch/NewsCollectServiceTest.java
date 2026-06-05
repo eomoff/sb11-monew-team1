@@ -94,6 +94,7 @@ class NewsCollectServiceTest {
       // when & then — 예외 없이 완료, HANKYUNG은 upsertAll 호출됨
       assertThatNoException().isThrownBy(() -> newsCollectService.collect());
       verify(articleUpsertService).upsertAll(eq(ArticleSource.HANKYUNG), anyList());
+      verify(newsCollectMetrics).countFailed(ArticleSource.NAVER);
     }
 
     @Test
@@ -110,6 +111,7 @@ class NewsCollectServiceTest {
       // when & then
       assertThatNoException().isThrownBy(() -> newsCollectService.collect());
       verify(articleUpsertService).upsertAll(eq(ArticleSource.CHOSUN), anyList());
+      verify(newsCollectMetrics).countFailed(ArticleSource.HANKYUNG);
     }
 
     @Test
