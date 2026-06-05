@@ -43,6 +43,7 @@ public class NewsCollectService {
       newsCollectMetrics.recordCollectDuration(Duration.ofNanos(System.nanoTime() - start));
     }
     interestNotificationService.notifyNewArticles(batchStartTime);
+    newsCollectMetrics.markSuccess();
   }
 
   private void collectNaver() {

@@ -58,6 +58,7 @@ class NewsCollectServiceTest {
       verify(articleUpsertService).upsertAll(
           eq(ArticleSource.NAVER),
           argThat(list -> list.size() == 1 && list.get(0).sourceUrl().equals("https://example.com/1")));
+      verify(newsCollectMetrics).markSuccess();
     }
 
     @Test
