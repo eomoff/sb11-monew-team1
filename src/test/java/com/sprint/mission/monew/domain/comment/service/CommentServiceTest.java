@@ -267,6 +267,21 @@ public class CommentServiceTest {
       assertThat(comment.isDeleted()).isTrue();
       verify(articleRepository).decreaseCommentCount(article.getId());
     }
+
+    @Test
+    @DisplayName("이미 논리삭제되어 카운트에서 빠진 댓글은 다시 논리삭제해도 중복 차감하지 않는다")
+    void 이미_논리삭제된_댓글은_다시_논리삭제해도_중복_차감하지_않는다() {
+      // given
+      Comment comment = Comment.create(article, user, content);
+      comment.softDelete();
+      given(commentRepository.findById(comment.getId())).willReturn(Optional.of(comment));
+
+      // when
+      commentService.softDelete(comment.getId(), userId);
+
+      // then
+      verify(articleRepository, never()).decreaseCommentCount(any());
+    }
   }
 
   @Nested
