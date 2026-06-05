@@ -96,6 +96,7 @@ class NewsCollectServiceTest {
       assertThatNoException().isThrownBy(() -> newsCollectService.collect());
       verify(articleUpsertService).upsertAll(eq(ArticleSource.HANKYUNG), anyList());
       verify(newsCollectMetrics).countFailed(ArticleSource.NAVER);
+      verify(newsCollectMetrics, never()).markSuccess();
     }
 
     @Test
