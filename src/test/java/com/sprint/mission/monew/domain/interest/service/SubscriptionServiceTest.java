@@ -117,6 +117,22 @@ class SubscriptionServiceTest {
           .isInstanceOf(SubscriptionNotFoundException.class);
       then(interestRepository).should(org.mockito.Mockito.never()).decreaseSubscriberCount(interestId);
     }
+
+    @Test
+    @DisplayName("구독 삭제 후 subscriberCount가 이미 0이면 감소되지 않아도 예외 없이 완료된다")
+    void 구독_삭제_후_subscriberCount가_이미_0이면_감소되지_않아도_정상_완료된다() {
+      // given
+      given(interestRepository.existsById(interestId)).willReturn(true);
+      given(subscriptionRepository.deleteByInterestIdAndUserId(interestId, userId))
+          .willReturn(1);
+      given(interestRepository.decreaseSubscriberCount(interestId)).willReturn(0);
+
+      // when
+      subscriptionService.unsubscribe(interestId, userId);
+
+      // then
+      then(interestRepository).should().decreaseSubscriberCount(interestId);
+    }
   }
 
   @Nested
