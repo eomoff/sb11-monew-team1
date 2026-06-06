@@ -18,6 +18,9 @@ public interface ArticleRepository extends JpaRepository<Article, UUID>, Article
 
   List<Article> findByCreatedAtAfterAndDeletedAtIsNull(Instant since);
 
+  List<Article> findByCreatedAtGreaterThanEqualAndCreatedAtLessThanAndDeletedAtIsNull(
+      Instant from, Instant to);
+
   @Modifying(clearAutomatically = true, flushAutomatically = true)
   @Query("""
       update Article a set a.viewCount = a.viewCount + 1
