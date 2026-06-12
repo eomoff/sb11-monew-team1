@@ -34,8 +34,6 @@ function assertNonEmpty(name, arr) {
   return arr;
 }
 
-export const userIds = new SharedArray('userIds', () =>
-  assertNonEmpty('user_ids.csv', loadLines(`${IDS_DIR}/user_ids.csv`)));
 export const articleIds = new SharedArray('articleIds', () =>
   assertNonEmpty('article_ids.csv', loadLines(`${IDS_DIR}/article_ids.csv`)));
 // comment_ids.csv: "commentId,articleId"
@@ -47,7 +45,6 @@ export const comments = new SharedArray('comments', () =>
 );
 
 export const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
-export const randomUserId = () => pick(userIds);
 
 // ── 로그인 세션 토큰 풀 ─────────────────────────────────────────
 // AuthFilter는 Monew-Request-User-ID 헤더를 '세션 토큰'으로 검증한다(userId 아님).
