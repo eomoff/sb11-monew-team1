@@ -59,8 +59,10 @@ export const LOGIN_USERS = Number(__ENV.LOGIN_USERS || 350); // 멀티유저 분
 const LOGIN_PASSWORD = __ENV.LOGIN_PASSWORD || 'loadtest1234'; // 시드 공통 평문(seed-data-medium.sql)
 
 // setup()에서만 호출(init 컨텍스트는 http 불가). user1~user{n}@load.test 로 순차 로그인.
+// 반환: [{ token, userId }] — token은 헤더 인증용, userId는 경로가 인증유저와 같아야 하는
+//       엔드포인트(R5 user-activities 등)에서 경로 값으로 쓴다.
 export function loginPool(n = LOGIN_USERS) {
-  const tokens = [];
+  const pool = [];
   for (let i = 1; i <= n; i += 1) {
     const res = http.post(
       `${BASE}/api/users/login`,
@@ -69,19 +71,20 @@ export function loginPool(n = LOGIN_USERS) {
     );
     // k6는 응답 헤더 키를 정규화 → 'Monew-Request-User-Id'(끝 Id). 여기에 세션 토큰이 실린다.
     const token = res.headers['Monew-Request-User-Id'];
-    if (res.status !== 200 || !token) {
+    const body = res.status === 200 ? res.json() : null; // body(UserResponse)에 userId(id) 포함
+    if (res.status !== 200 || !token || !body || !body.id) {
       throw new Error(
         `로그인 실패(user${i}@load.test): status=${res.status} token=${token} `
         + `— 시드(seed-data-medium.sql) 적재와 비밀번호('${LOGIN_PASSWORD}') 일치를 확인하세요.`,
       );
     }
-    tokens.push(token);
+    pool.push({ token, userId: body.id });
   }
-  return tokens;
+  return pool;
 }
 
-// 토큰 풀에서 무작위 1개(멀티유저 분산). data.tokens 를 넘겨 쓴다.
-export const randomToken = (tokens) => pick(tokens);
+// 토큰 풀에서 무작위 1개(멀티유저 분산). data.pool({token,userId} 배열)을 넘겨 쓴다.
+export const randomAuth = (pool) => pick(pool);
 
 // 모든 요청: Monew-Request-User-ID 헤더(JWT 없음). token = loginPool()이 발급한 세션 토큰.
 export function headers(token) {
