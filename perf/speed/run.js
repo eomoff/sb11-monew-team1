@@ -56,6 +56,9 @@ targets.forEach((exec, i) => {
 
 export const options = {
   scenarios,
+  // 합격선이 p95·p99 둘 다 보는데 summary-export 기본 통계엔 p99가 없다 → p99를 명시 포함해
+  // 결과 JSON에 숫자로 남긴다(미포함 시 threshold 통과여부만 남고 값은 유실).
+  summaryTrendStats: ['avg', 'min', 'med', 'p(90)', 'p(95)', 'p(99)', 'max'],
   // 합격선 — phase:measure만, 워밍업 제외. 분류별 p95/p99.
   thresholds: {
     'http_req_failed{phase:measure}': ['rate<0.01'],

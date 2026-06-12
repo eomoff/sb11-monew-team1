@@ -10,7 +10,7 @@
 --
 -- 재실행 주의: email/source_url이 i 기반 결정값이라 빈 DB에서 1회만 실행한다.
 --   다시 채우려면 아래 정리문을 먼저 수동 실행(주석 해제):
---   TRUNCATE comment_likes, comments, article_views, articles, users RESTART IDENTITY CASCADE;
+--   TRUNCATE comment_likes, comments, article_views, articles, subscriptions, interests, users RESTART IDENTITY CASCADE;
 
 -- gen_random_uuid() 사용 (PostgreSQL 13+ 코어 내장). 구버전이면: CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
@@ -34,6 +34,20 @@ SELECT gen_random_uuid(),
        true,
        now()
 FROM generate_series(1, 10000) AS s(i);
+
+-- ── 1.5 관심사 50개 (동시성 C3용) ──────────────────────────────
+-- C3(구독 중복) 측정은 구독할 관심사가 있어야 setup()을 통과한다. subscriptions 행은 C3가
+-- 직접 POST로 만들므로 여기선 interests만 채운다.
+-- jamo_length는 NOT NULL이라 값이 필요 — 퍼지 검색 랭킹용 컬럼이고 C3는 UNIQUE(user,interest)
+-- 제약만 검증하므로 정확한 자모 분해 대신 char_length(name)로 채워도 측정에 무방하다.
+\echo '[seed] 1.5 interests 50개 적재(C3용)...'
+INSERT INTO interests (id, name, jamo_length, subscriber_count, created_at)
+SELECT gen_random_uuid(),
+       '관심사' || i,
+       char_length('관심사' || i),
+       0,
+       now()
+FROM generate_series(1, 50) AS s(i);
 
 -- ── 2. 기사 10만 ───────────────────────────────────────────────
 -- source는 CHECK(NAVER/HANKYUNG/CHOSUN/YONHAP) 통과값으로 분산. source_url은 i로 유니크.
@@ -97,6 +111,7 @@ WHERE a.id = sub.article_id;
 -- ── 6. 통계 갱신 (필수) ───────────────────────────────────────
 -- ANALYZE를 안 하면 시드해도 플래너가 풀스캔으로 측정될 수 있다.
 ANALYZE users;
+ANALYZE interests;
 ANALYZE articles;
 ANALYZE comments;
 ANALYZE comment_likes;

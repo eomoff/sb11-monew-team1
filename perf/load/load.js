@@ -121,6 +121,9 @@ function buildScenario() {
 
 export const options = {
   scenarios: { [PATTERN]: buildScenario() },
+  // 합격선이 p95·p99 둘 다 보는데 summary-export 기본 통계엔 p99가 없다 → p99를 명시 포함해
+  // 결과 JSON에 숫자로 남긴다(미포함 시 threshold 통과여부만 남고 값은 유실).
+  summaryTrendStats: ['avg', 'min', 'med', 'p(90)', 'p(95)', 'p(99)', 'max'],
   // 합격선. abortOnFail 미설정(기본 false) → stress에서 포화로 FAIL이 떠도 끝까지 돌려
   // 단계별 출력에서 "어느 VU/RPS부터 무너지는지" 포화점을 읽는다(stress는 FAIL이 정상 관측).
   thresholds: {
