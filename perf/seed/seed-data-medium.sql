@@ -6,7 +6,7 @@
 --
 -- 실행:
 --   docker compose -f perf/docker-compose.yml up -d postgres
---   psql "postgresql://monew:monew@localhost:5432/monew" -f perf/seed/seed-data-medium.sql
+--   psql "postgresql://monew:monew@localhost:5433/monew" -f perf/seed/seed-data-medium.sql
 --
 -- 재실행 주의: email/source_url이 i 기반 결정값이라 빈 DB에서 1회만 실행한다.
 --   다시 채우려면 아래 정리문을 먼저 수동 실행(주석 해제):

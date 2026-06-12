@@ -20,7 +20,7 @@
 set -euo pipefail
 
 # 기본값: perf/docker-compose.yml 의 postgres. 필요시 환경변수로 덮어쓴다.
-DB_URL="${DB_URL:-postgresql://monew:monew@localhost:5432/monew}"
+DB_URL="${DB_URL:-postgresql://monew:monew@localhost:5433/monew}"  # 5433 = perf/docker-compose.yml의 host 매핑(5432 충돌 회피)
 LIMIT="${LIMIT:-500}"                                   # 풀 크기(엔드포인트별 무작위 추출 대상)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OUT_DIR="${OUT_DIR:-$SCRIPT_DIR}"                       # 기본: 이 스크립트와 같은 perf/ 디렉토리
