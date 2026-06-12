@@ -70,6 +70,10 @@ export function setup() {
   if (CASE !== 'c3') return { pool };
   const { token } = randomAuth(pool);
   const res = http.get(`${BASE}/api/interests?orderBy=name&direction=ASC&limit=100`, { headers: headers(token) });
+  // status 먼저 확인 — 401/500을 "관심사 없음"으로 오진하지 않도록 진짜 빈 데이터와 장애를 분리.
+  if (res.status !== 200) {
+    throw new Error(`C3: 관심사 조회 실패(status=${res.status}). 세션 토큰·서버 상태를 확인하세요.`);
+  }
   const body = res.json();
   const interestIds = (body && body.content ? body.content : []).map((it) => it.id).filter(Boolean);
   if (interestIds.length === 0) {

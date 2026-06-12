@@ -59,6 +59,9 @@ const LOGIN_PASSWORD = __ENV.LOGIN_PASSWORD || 'loadtest1234'; // 시드 공통 
 // 반환: [{ token, userId }] — token은 헤더 인증용, userId는 경로가 인증유저와 같아야 하는
 //       엔드포인트(R5 user-activities 등)에서 경로 값으로 쓴다.
 export function loginPool(n = LOGIN_USERS) {
+  if (!Number.isInteger(n) || n < 1) {
+    throw new Error(`LOGIN_USERS 는 1 이상의 정수여야 합니다: ${n}`);
+  }
   const pool = [];
   for (let i = 1; i <= n; i += 1) {
     const res = http.post(
