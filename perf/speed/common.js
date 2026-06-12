@@ -49,9 +49,43 @@ export const comments = new SharedArray('comments', () =>
 export const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 export const randomUserId = () => pick(userIds);
 
-// 모든 요청: Monew-Request-User-ID 헤더(JWT 없음).
-export function headers(uid) {
-  return { 'Monew-Request-User-ID': uid, 'Content-Type': 'application/json' };
+// ── 로그인 세션 토큰 풀 ─────────────────────────────────────────
+// AuthFilter는 Monew-Request-User-ID 헤더를 '세션 토큰'으로 검증한다(userId 아님).
+// 그래서 setup()에서 실제 로그인해 세션 토큰을 발급받아 풀로 모아두고, 매 요청에 돌려 쓴다.
+//   - 로그인 응답 헤더(Monew-Request-User-ID)에 세션 토큰이 실려 온다.
+//   - 인증된 매 요청마다 만료가 슬라이딩되어 측정 내내 세션이 유지된다.
+//   - 같은 k6에서 로그인·요청하므로 IP/24·디바이스 지문이 자동 일치한다.
+export const LOGIN_USERS = Number(__ENV.LOGIN_USERS || 350); // 멀티유저 분산용 토큰 개수
+const LOGIN_PASSWORD = __ENV.LOGIN_PASSWORD || 'loadtest1234'; // 시드 공통 평문(seed-data-medium.sql)
+
+// setup()에서만 호출(init 컨텍스트는 http 불가). user1~user{n}@load.test 로 순차 로그인.
+export function loginPool(n = LOGIN_USERS) {
+  const tokens = [];
+  for (let i = 1; i <= n; i += 1) {
+    const res = http.post(
+      `${BASE}/api/users/login`,
+      JSON.stringify({ email: `user${i}@load.test`, password: LOGIN_PASSWORD }),
+      { headers: { 'Content-Type': 'application/json' }, tags: { name: 'setup login' } },
+    );
+    // k6는 응답 헤더 키를 정규화 → 'Monew-Request-User-Id'(끝 Id). 여기에 세션 토큰이 실린다.
+    const token = res.headers['Monew-Request-User-Id'];
+    if (res.status !== 200 || !token) {
+      throw new Error(
+        `로그인 실패(user${i}@load.test): status=${res.status} token=${token} `
+        + `— 시드(seed-data-medium.sql) 적재와 비밀번호('${LOGIN_PASSWORD}') 일치를 확인하세요.`,
+      );
+    }
+    tokens.push(token);
+  }
+  return tokens;
+}
+
+// 토큰 풀에서 무작위 1개(멀티유저 분산). data.tokens 를 넘겨 쓴다.
+export const randomToken = (tokens) => pick(tokens);
+
+// 모든 요청: Monew-Request-User-ID 헤더(JWT 없음). token = loginPool()이 발급한 세션 토큰.
+export function headers(token) {
+  return { 'Monew-Request-User-ID': token, 'Content-Type': 'application/json' };
 }
 
 // name: 엔드포인트 고정 라벨(URL의 UUID로 메트릭이 폭발하지 않게). category: 합격선 분류.
