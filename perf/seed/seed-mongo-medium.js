@@ -34,7 +34,7 @@ if (typeof globalThis.SEED_USERS === 'undefined') {
     );
   }
 }
-if (!Array.isArray(globalThis.SEED_USERS)) {
+if (!Array.isArray(globalThis.SEED_USERS) || globalThis.SEED_USERS.length === 0) {
   throw new Error('SEED_USERS 가 비었습니다 — extract-ids.sh 의 user 추출(빈 DB?)을 확인하세요.');
 }
 
