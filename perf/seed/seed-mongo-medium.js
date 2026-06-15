@@ -18,16 +18,23 @@
 //        (perf/run.sh 가 측정 전 자동 호출. MONGODB_URI 는 perf/docker-compose.yml 의 로컬 mongo)
 // 재실행: 멱등 — 같은 _id를 먼저 지우고 다시 넣는다.
 
-// extract-ids.sh 산출 JS 로드(cwd = perf/seed 기준). 없으면 명확히 중단.
-try {
-  load('user-seed-data.generated.js');
-} catch (e) {
-  throw new Error(
-    'user-seed-data.generated.js 를 못 읽음 — 먼저 perf/extract-ids.sh 실행 필요. '
-    + '그리고 이 스크립트는 perf/seed 디렉토리에서 실행하세요. (' + e + ')',
-  );
+// 입력(SEED_USERS) 확보. 두 가지 실행 방식 모두 지원:
+//   (a) host mongosh:  cd perf/seed && mongosh "<uri>" seed-mongo-medium.js
+//       → 같은 디렉토리의 생성 파일을 load() 한다.
+//   (b) 컨테이너 mongosh(host에 mongosh 없을 때): 데이터+이 스크립트를 이어붙여 stdin 으로 전달
+//       cat user-seed-data.generated.js seed-mongo-medium.js | docker compose exec -T mongo mongosh "<uri>"
+//       → 이 경우 SEED_USERS 가 앞서 이미 정의돼 있으니 load() 는 건너뛴다.
+if (typeof globalThis.SEED_USERS === 'undefined') {
+  try {
+    load('user-seed-data.generated.js');
+  } catch (e) {
+    throw new Error(
+      'SEED_USERS 를 못 구함 — 먼저 perf/extract-ids.sh 실행, 그리고 (a) perf/seed 에서 실행하거나 '
+      + '(b) 데이터 파일을 이어붙여 stdin 으로 넘기세요. (' + e + ')',
+    );
+  }
 }
-if (typeof globalThis.SEED_USERS === 'undefined' || !Array.isArray(SEED_USERS)) {
+if (!Array.isArray(globalThis.SEED_USERS)) {
   throw new Error('SEED_USERS 가 비었습니다 — extract-ids.sh 의 user 추출(빈 DB?)을 확인하세요.');
 }
 

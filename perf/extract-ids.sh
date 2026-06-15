@@ -77,12 +77,14 @@ psql_csv "
 #   mongosh가 load()로 읽을 수 있게 CSV가 아니라 JS 리터럴로 떨군다(파싱 의존성 0).
 #   gitignore 대상(환경 의존·재생성 가능). 전 유저를 뽑아 LOGIN_USERS 값과 무관히 동작.
 SEED_DATA_FILE="$SCRIPT_DIR/seed/user-seed-data.generated.js"
+# void(...) 로 감싸 대입식이 값을 반환하지 않게 한다 — mongosh 를 stdin(REPL) 으로 쓸 때
+# 대입 결과(1만 건 배열)가 화면에 메아리치는 것을 막는다(기능엔 무관, 출력만 깔끔).
 psql "$DB_URL" -tAX -c "
-  SELECT 'globalThis.SEED_USERS=' || COALESCE(
+  SELECT 'void(globalThis.SEED_USERS=' || COALESCE(
     json_agg(json_build_object(
       'id', id, 'email', email, 'nickname', nickname,
       'createdAtMs', (extract(epoch FROM created_at) * 1000)::bigint
-    ) ORDER BY email)::text, '[]') || ';'
+    ) ORDER BY email)::text, '[]') || ');'
   FROM users WHERE deleted_at IS NULL
 " > "$SEED_DATA_FILE"
 
@@ -91,6 +93,6 @@ echo "[extract] 완료:"
 for f in article_ids comment_ids; do
   printf '  %-16s %s 행\n' "$f.csv" "$(grep -c . "$OUT_DIR/$f.csv" || true)"
 done
-printf '  %-16s %s 유저\n' "user-seed-data" "$(grep -oc '"id"' "$SEED_DATA_FILE" || true)"
+printf '  %-16s %s 유저\n' "user-seed-data" "$(grep -o '"id"' "$SEED_DATA_FILE" | wc -l | tr -d ' ')"
 echo "[extract] k6 스크립트가 이 csv들을 open() 한다. 시드를 다시 채웠으면 이 스크립트도 다시 실행할 것."
 echo "[extract] R5 측정 전: mongosh \"\$MONGODB_URI\" perf/seed/seed-mongo-medium.js 로 Mongo 적재."
